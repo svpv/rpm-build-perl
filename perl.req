@@ -97,7 +97,7 @@ sub process_file {
 		or
 	$super =~ s/(.+)_\w+\.pl$/$1/
 		or goto bad;
-	warn "$fname: deparse failed, trying to recover with -M$super\n";
+	warn "# $fname: deparse failed, trying to recover with -M$super\n";
 	my $ok2 = do_deparse($fname, "-M$super");
 	goto bad unless $ok2;
 	return;

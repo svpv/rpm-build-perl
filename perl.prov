@@ -36,6 +36,9 @@ sub process_file {
 	} elsif ($basename =~ /\.pm$/) {
 		$prov{$basename} ||= undef;
 		warn "# $fname has basename $basename, checking version\n" if $Verbose;
+	} elsif ($basename =~ /\.al$/) {
+		warn "# $fname (autoloaded file SKIP)" if $Debug;
+		return;
 	} else {
 		warn "# $fname has basename $basename (SKIP)\n";
 		return;

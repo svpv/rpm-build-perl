@@ -231,7 +231,7 @@ sub compile {
 		$opt =~ /^-(?:r|-?relaxed)$/	and $Relaxed = 1 or
 		$opt =~ /^-(?:v|-?verbose)$/	and $Verbose = 1 or
 		$opt =~ /^-(?:d|-?debug)$/	and $Verbose = $Debug = 1 or
-		die "$pkg: unkonwn option: $opt\n";
+		die "$pkg: unknown option: $opt\n";
 	}
 	die "$pkg: options -strict and -relaxed are mutually exclusive\n"
 		if $Strict and $Relaxed;
