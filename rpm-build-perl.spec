@@ -1,6 +1,6 @@
 Name: rpm-build-perl
-Version: 0.1
-Release: alt8
+Version: 0.2
+Release: alt2.1
 
 Summary: RPM helper scripts that calculate Perl dependencies
 License: GPL or LGPL
@@ -8,7 +8,8 @@ Group: Development/Other
 
 Source0: rpm-perl.req
 Source1: rpm-perl.prov
-Source2: perl5-alt-rpm-macros
+Source2: rpm-fake.pm
+Source3: perl5-alt-rpm-macros
 
 # http://www.google.com/search?q=%22base.pm+and+eval%22&filter=0
 # http://www.google.com/search?q=%22base.pm%20import%20stuff%22&filter=0
@@ -33,27 +34,43 @@ tags for the package.
 %setup -cT
 %__cp -a %SOURCE0 perl.req
 %__cp -a %SOURCE1 perl.prov
+%__cp -a %SOURCE2 fake.pm
 %__cp -a %(eval "`%__perl -V:installprivlib`"; echo "$installprivlib")/base.pm .
 %patch0 -p4
 
 %build
 pod2man perl.req > perl.req.1
+pod2man perl.prov > perl.prov.1
 
 %install
 %__install -pD -m755 perl.req	%buildroot%_libdir/rpm/perl.req
 %__install -pD -m755 perl.prov	%buildroot%_libdir/rpm/perl.prov
 %__install -pD -m644 base.pm	%buildroot%_libdir/rpm/base.pm
+%__install -pD -m644 fake.pm	%buildroot%_libdir/rpm/fake.pm
 %__install -pD -m644 perl.req.1	%buildroot%_man1dir/perl.req.1
-%__install -pD -m644 %SOURCE2	%buildroot%_sysconfdir/rpm/macros.d/perl5
+%__install -pD -m644 perl.prov.1 %buildroot%_man1dir/perl.prov.1
+%__install -pD -m644 %SOURCE3	%buildroot%_sysconfdir/rpm/macros.d/perl5
 
 %files
 %_libdir/rpm/perl.req
 %_libdir/rpm/perl.prov
 %_libdir/rpm/base.pm
+%_libdir/rpm/fake.pm
 %_man1dir/perl.*
 %config	%_sysconfdir/rpm/macros.d/perl5
 
 %changelog
+* Thu Dec 18 2003 Alexey Tourbin <at@altlinux.ru> 0.2-alt2.1
+- yet another hot fix
+
+* Thu Dec 18 2003 Alexey Tourbin <at@altlinux.ru> 0.2-alt2
+- don't produce dependencies on fake.pm
+
+* Wed Dec 17 2003 Alexey Tourbin <at@altlinux.ru> 0.2-alt1
+- fake.pm introduced (@INC entries rearrangement)
+- perl.prov manpage introduced
+- various fixes
+
 * Tue Nov 04 2003 Alexey Tourbin <at@altlinux.ru> 0.1-alt8
 - perl.req:
   + use $RPM_BUILD_ROOT%_bindir/perl whenever available (experimental,

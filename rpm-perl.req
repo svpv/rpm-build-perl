@@ -152,10 +152,10 @@ should be addressed to Erik Troan <ewt@redhat.com> and Jeff Johnson <jbj@redhat.
 =cut
 
 use 5.8.0;
-use Getopt::Long;
+use Getopt::Long qw(GetOptions);
 use strict;
 
-GetOptions("debug" => \my $debug, "method=s" => \my $method);
+GetOptions "debug" => \my $debug, "method=s" => \my $method;
 $debug ||= $ENV{RPM_SCRIPTS_DEBUG};
 sub debug ($) {
 	my $msg = shift;
@@ -227,10 +227,10 @@ if ($method eq "strict" && $ENV{RPM_BUILD_ROOT}
 # fake paths should take precedence
 my @inc;
 {
-	my @lib = split /[:,\s]/, $ENV{RPM_PERL_LIB_PATH};
+	my @lib = split /[:,\s]+/, $ENV{RPM_PERL_LIB_PATH};
 	push @inc, map { "$ENV{RPM_BUILD_ROOT}$_" } grep { /^\// } @lib, @INC
 		if $ENV{RPM_BUILD_ROOT};
-	push @inc, grep { /^\// } @lib;
+	push @inc, grep { /^\// } @lib, @INC;
 }
 
 # begin
@@ -274,23 +274,28 @@ sub process_file {
 # find deps with new perl on order to avoid incompatible changes
 	if ($ENV{RPM_BUILD_ROOT} && -x "$ENV{RPM_BUILD_ROOT}$^X") {
 		$X = "$ENV{RPM_BUILD_ROOT}$^X";
-		$ENV{LD_LIBRARY_PATH} = "$ENV{RPM_BUILD_ROOT}/usr/lib";
+		$ENV{LD_LIBRARY_PATH} .= ":$ENV{RPM_BUILD_ROOT}/usr/lib";
 	}
-	my @pipe = ($X, @argv, (map { "-I$_" } @inc), "-MO=Deparse");
+	my @pipe = ($X, @argv, map { "-I$_" } @inc);
 
 # known problems and workarounds:
 # - /usr/lib/rpm/base.pm apparently fixes possible dependency loops with base.pm 
 #   that make syntax check impossible; affected packages: perl-Tk, perl-Video-DVDRip
-	push @pipe, "-I/usr/lib/rpm" if $method ne "strict";
-	push @pipe, "--", $fname;
+# - /usr/lib/rpm/fake.pm (preloaded with `use') rearranges @INC entries so that
+#   fake %buildroot-dependent paths takes precedence at INIT stage;
+#   affected packages: autoconf
+	push @pipe, "-I/usr/lib/rpm", "-Mfake" if $method ne "strict";
+	push @pipe, "-MO=Deparse", "--", $fname;
 	debug("pipe: @pipe");
 
-# deparse
+# do deparse
 	open(PIPE, "-|", @pipe) or die;
 	while (<PIPE>) {
 		last if /^__(DATA|END)__/;
 		process_line($_);
 	}
+# flush buffers
+	1 while <PIPE>;
 	return if close PIPE;
 
 # deparse failed, handle errors
@@ -333,7 +338,7 @@ again:
 		$req{"perl-base"}{package_version($1, '%.5f')}++;
 	} elsif ($line =~ /^\s*use ($re_mod) ($re_ver)/) {
 		$req{package_filename($1)}{package_version($2)}++;
-	} elsif ($line =~ /^\s*use ($re_mod)/) {
+	} elsif ($line =~ /^\s*(?:use|no) ($re_mod)/) {
 		$req{package_filename($1)} ||= undef;
 	} elsif ($line =~ /^\s*(?:require|do) '($re_fna)'/) {
 		if ($eval && $method ne "strict") {

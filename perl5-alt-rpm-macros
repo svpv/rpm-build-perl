@@ -28,11 +28,11 @@ perl_vendor_build() { \
 	: running make \
 	%make_build OPTIMIZE="%{!?_enable_debug:%perl_vendor_optflags}%{?_enable_debug:%optflags}%{?_enable_Werror: -Werror}" \
 	%{?!_without_test:%{?!_disable_test:: running tests; LD_BIND_NOW=1 PERL_DL_NONLAZY=1 %make test %{?_enable_debug: TEST_VERBOSE=1}}} \
-	local BLIBS; BLIBS=`find blib -type f -name '*.so'` \
+	BLIBS="$BLIBS${BLIBS:+ }$(find $PWD/blib -type f -name '*.so' ||:)" \
 	if [ -n "$BLIBS" ]; then \
 		: checking for undefined symbols \
 		echo 'int main(){return 0;}' >ldtest.c \
-		gcc ldtest.c -lperl $BLIBS \
+		gcc ldtest.c ${LD_LIBRARY_PATH:+-L$LD_LIBRARY_PATH} -lperl $BLIBS $EXTRA_BLIBS \
 		LD_BIND_NOW=1 ./a.out \
 		rm -f ldtest.c ./a.out \
 	fi \

@@ -1,5 +1,35 @@
 #!/usr/bin/perl
 
+=head1	NAME
+
+perl.prov - show what the given perl source provides
+
+=head1	SYNOPSIS
+
+B<perl.prov> /path/to/Module.pm
+
+echo /path/to/Module.pm | B<perl.prov>
+
+=head1	DESCRIPTION
+
+This is a counterpart of L<perl.req(1)> script.
+
+=head1	AUTHOR
+
+Alexey Tourbin <at@altlinux.org>,
+based on an earlier version by Ken Estes <kestes@staff.mail.com>,
+with contributions from Mikhail Zabaluev <mhz@altlinux.org>.
+
+=head1	COPYING
+
+This program is intended to be an optional/alternative part of RPM package
+manager.  You can redistribute it and/or modify it under the same terms as RPM
+itself.  As of version 4.x, RPM code base is covered with GPL and
+(alternatively) LGPL licenses.  Any questions regarding the licensing of RPM
+should be addressed to Erik Troan <ewt@redhat.com> and Jeff Johnson <jbj@redhat.com>.
+
+=cut
+
 use Safe;
 use strict;
 
@@ -9,10 +39,10 @@ my %prov;
 # fake paths should take precedence
 my @inc;
 {
-	my @lib = split /[:,\s]/, $ENV{RPM_PERL_LIB_PATH};
+	my @lib = split /[:,\s]+/, $ENV{RPM_PERL_LIB_PATH};
 	push @inc, map { "$ENV{RPM_BUILD_ROOT}$_" } grep { /^\// } @lib, @INC
 		if $ENV{RPM_BUILD_ROOT};
-	push @inc, grep { /^\// } @lib;
+	push @inc, grep { /^\// } @lib, @INC;
 }
 
 # begin

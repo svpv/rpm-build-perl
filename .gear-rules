@@ -1,4 +1,5 @@
 gzip: *.patch
+copy: *.pm
 copy: *.prov
 copy: *.req
 copy: perl5-alt-rpm-macros
