@@ -21,8 +21,6 @@
 perl_vendor_build() { \
 	%{?_without_smp:NPROCS=1; : NOTE: SMP-incompatible} \
 	%{?_disable_smp:NPROCS=1; : NOTE: SMP-incompatible} \
-	: looking for PREREQ dependencies \
-	%__perl Makefile.PL PREFIX=%prefix INSTALLDIRS=vendor PRINT_PREREQ=1 "$@" </dev/null | tee .perl.req \
 	: writing Makefile \
 	%__perl Makefile.PL PREFIX=%prefix INSTALLDIRS=vendor "$@" </dev/null \
 	: running make \
@@ -45,14 +43,6 @@ perl_vendor_install() { \
 	%make_install UNINST=undef PREFIX=%buildroot%prefix INSTALLDIRS=vendor \\\
 		INSTALLMAN1DIR=%buildroot%perl_vendor_man1dir INSTALLMAN3DIR=%buildroot%perl_vendor_man3dir \\\
  		"$@" pure_install </dev/null \
-	if %__grep -Fqs 'perl(' .perl.req; then cat .perl.req >>%buildroot/.perl.req; fi \
-	%{!?_enable_debug: \
-		: fixing \
-		find %buildroot%perl_vendor_privlib \\\
-			-type f '(' -name '*.al' -o -name '*.ix' ')' \\\
-			-exec %__perl -ni -e \\\
-			'/^#/ and $fixed=1 or print; END{print STDERR "$ARGV: comments removed\\n" if $fixed}' \\\
-			{} ';' } \
 	: prompting for files that contain /usr/local \
 	find %buildroot -type f -exec %__grep -H /usr/local {} ';' \
 } \

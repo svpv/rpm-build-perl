@@ -151,7 +151,7 @@ should be addressed to Erik Troan <ewt@redhat.com> and Jeff Johnson <jbj@redhat.
 
 =cut
 
-use 5.8.0;
+use 5.8.1;
 use Getopt::Long qw(GetOptions);
 use strict;
 
@@ -468,8 +468,9 @@ foreach my $k (keys %req) {
 		print "\n";
 	}
 }
-# nothing special?
-print "perl-base\n" unless %req;
+# nothing special?  what about perl-base?
+# well, perl-base is basesystem's prerequisite.
+# print "perl-base\n" unless %req;
 
 # auxiliary stuff
 sub count($$) {
