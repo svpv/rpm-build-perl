@@ -5,7 +5,6 @@ use B::PerlReq;
 use PerlReq::Utils;
 use Fcntl qw(F_SETFD);
 
-
 sub spawn ($) {
 	my $code = shift;
 	open my $pipe, "-|", $^X, qw(-Mblib -MO=PerlReq -e) => $code

@@ -4,7 +4,6 @@ use strict;
 use Config qw(%Config);
 use Fcntl qw(F_SETFD);
 
-
 sub spawn ($) {
 	my $file = shift;
 	open my $pipe, "-|", $^X, qw(-Mblib perl.req) => $file

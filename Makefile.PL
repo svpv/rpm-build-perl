@@ -7,7 +7,7 @@ WriteMakefile(
 	EXE_FILES => [ "perl.req", "perl.prov" ],
 	PREREQ_PM => { B => 0, Safe => 0, Test::More => 0 },
 	AUTHOR => 'Alexey Tourbin <at@altlinux.org>',
-	ABSTRACT => '',
+	ABSTRACT => 'Calculate dependencies for Perl sources',
 	dist => { COMPRESS => 'gzip -9f' },
 );
 
@@ -17,11 +17,13 @@ sub install {
 	return $self->SUPER::install(@_) . <<'EOF';
 
 # for maintainer
-rpm: dist
+buildreq: dist
 	buildreq --args "--define '_sourcedir $$PWD'" $(NAME).spec
+
+rpm: dist
 	rpm -ba --define "_sourcedir $$PWD" $(NAME).spec
 
-.PHONY: rpm
+.PHONY: buildreq rpm
 
 EOF
 

@@ -1,0 +1,18 @@
+* Wed Dec 22 2004 Alexey Tourbin <at@altlinux> 0.5.1-alt1
+- released on CPAN (see http://search.cpan.org/dist/rpm-build-perl/)
+- perl.prov: workaround perl bug #32967
+- added partial support for relative paths
+- restored OS2 pattern in skip lists (Andrei Bulava, #5713)
+- enhanced error handling and debugging output
+
+* Mon Dec 06 2004 Alexey Tourbin <at@altlinux> 0.5-alt1
+- bumped version (0.3 -> 0.5) to reflect major changes
+- implemented B::PerlReq and made perl.req use it instead of B::Deparse
+- new PerlReq::Utils module (convertion and formatting routines)
+- version numbers now rounded to 3 digits after decimal point
+- v-string versions now treated as floats (e.g. 1.2.3 -> 1.002)
+- all dependencies on particular perl version converted to 1:5.x.y form
+- enabled version extraction from PREREQ_PM in Makefile.PL
+- wrote/updated/enhanced documentation, started README.ALT
+- started test suite (more than 50 tests)
+- downgraded perl requirements to 5.6.0

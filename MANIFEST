@@ -1,0 +1,17 @@
+Changes
+MANIFEST
+META.yml                                 Module meta-data (added by MakeMaker)
+Makefile.PL
+README
+README.ALT
+fake.pm
+lib/B/PerlReq.pm
+lib/PerlReq/Utils.pm
+perl.prov
+perl.req
+perl5-alt-base_pm-syntax-hack.patch
+perl5-alt-rpm-macros
+rpm-build-perl.spec
+t/01-B-PerlReq.t
+t/02-perlreq.t
+t/03-perlprov.t

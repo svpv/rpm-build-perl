@@ -4,13 +4,25 @@ package PerlReq::Utils;
 
 PerlReq::Utils - auxiliary routines for L<B::PerlReq>, L<perl.req> and L<perl.prov>
 
+=head1	DESCRIPTION
+
+This module provides the following convenience functions:
+
+=over
+
 =cut
 
 require Exporter;
 @ISA = qw(Exporter);
-@EXPORT = qw(path2mod mod2path path2dep mod2dep sv_version adjust_inc verf verf_perl);
+@EXPORT = qw(argv explode inc path2mod mod2path path2dep mod2dep sv_version verf verf_perl);
 
 use strict;
+
+=item	B<path2mod>
+
+Convert file path to module name, e.g. I<File/Find.pm> -> I<File::Find>.
+
+=cut
 
 sub path2mod ($) {
 	local $_ = shift;
@@ -19,30 +31,59 @@ sub path2mod ($) {
 	return $_;
 }
 
+=item	B<mod2path>
+
+Convert module name to file path, e.g. I<File::Find> -> I<File/Find.pm>.
+
+=cut
+
 sub mod2path ($) {
 	local $_ = shift;
 	s/::/\//g;
 	return $_ . ".pm";
 }
 
+=item	B<path2dep>
+
+Convert file path to conventional dependency name,
+e.g. I<File/Find.pm> -> I<perl(File/Find.pm)>.
+Note that this differs from RedHat conventional form I<perl(File::Find)>.
+
+=cut
+
 sub path2dep ($) {
 	my $path = shift;
 	return "perl($path)";
 }
+
+=item	B<mod2dep>
+
+Convert module name to conventional dependency name,
+e.g. I<File::Find> -> I<perl(File/Find.pm)>.
+Note that this differs from RedHat conventional form I<perl(File::Find)>.
+
+=cut
 
 sub mod2dep ($) {
 	my $mod = shift;
 	return path2dep(mod2path($mod));
 }	
 
-sub adjust_inc () {
-	my @inc;
-	my @lib = split /[:,\s]+/, $ENV{RPM_PERL_LIB_PATH};
-	push @inc, map { "$ENV{RPM_BUILD_ROOT}$_" } grep { /^\// } @lib, @INC
-		if $ENV{RPM_BUILD_ROOT};
-	push @inc, grep { /^\// } @lib, @INC;
-	return grep { -d } @inc;
-}
+=item	B<verf>
+
+Format module version number, e.g. I<2.12> -> I<2.120>.  Currently
+truncated to 3 digits after decimal point, except for all zeroes, e.g.
+I<2.000> -> I<2.0>.
+
+=for comment
+$ perl -le 'print 2.01 * 1000'
+2010
+$ perl -le 'print int(2.01 * 1000)'
+2009
+$
+Gotta use 1e-3 and 1e-6.
+
+=cut
 
 sub verf ($) {
 	my $v = shift;
@@ -50,6 +91,12 @@ sub verf ($) {
 	$v =~ s/\.000$/.0/g;
 	return $v;
 }
+
+=item	B<verf_perl>
+
+Format Perl version number, e.g. I<5.005_03> -> I<1:5.5.30>.
+
+=cut
 
 sub verf_perl ($) {
 	my $v = shift;
@@ -59,10 +106,16 @@ sub verf_perl ($) {
 	return "1:$major.$minor.$micro";
 }
 
-use B qw(class svref_2object);
+=item	B<sv_version>
+
+Extract version number from B::SV object.  v-strings converted to floats
+according to Perl rules, e.g. I<1.2.3> -> I<1.002003>.
+
+=cut
+
+use B qw(class);
 sub sv_version ($) {
-	my $arg = shift;
-	my $sv = ref($arg) ? $arg : svref_2object(\$arg);
+	my $sv = shift;
 	my $class = class($sv);
 	if ($class eq "IV" or $class eq "PVIV") {
 		return $sv->int_value;
@@ -71,18 +124,15 @@ sub sv_version ($) {
 		return $sv->NV;
 	}
 	if ($class eq "PVMG") {
-		my @v;
 		for (my $mg = $sv->MAGIC; $mg; $mg = $mg->MOREMAGIC) {
 			next if $mg->TYPE ne "V";
-			@v = $mg->PTR =~ /(\d+)/g;
-			last;
+			my @v = $mg->PTR =~ /(\d+)/g;
+			return $v[0] + $v[1] / 1000 + $v[2] / 1000 / 1000;
 		}
-		@v = map ord, split //, $sv->PV unless @v;
-		return $v[0] + $v[1] / 1000 + $v[2] / 1000 / 1000;
 	}
-	if ($class eq "PV") {
+	if ($sv->can("PV")) {
 		my $v = $sv->PV;
-		if ($v =~ /^\d/) {
+		if ($v =~ /^\s*\.?\d/) {
 			$v =~ s/_//g;
 			return $v + 0;
 		}
@@ -90,9 +140,74 @@ sub sv_version ($) {
 	return undef;
 }
 
+=item	B<argv>
+
+Obtain a list of files passed on the command line.  When command line
+is empty, obtain a list of files from standard input, one file per line.
+Die when file list is empty.  Check that each file exists, or die
+otherwise.  Canonicalize each filename with C<File::Spec::rel2abs()>
+function (which makes no checks against the filesystem).
+
+=cut
+
+use File::Spec::Functions qw(rel2abs);
+sub argv {
+	my @f = @ARGV ? @ARGV : grep length, map { chomp; $_ } <>;
+	die "$0: no files\n" unless @f;
+	return map { -f $_ ? rel2abs($_) : die "$0: $_: $!\n" } @f;
+}	
+
+=item	B<inc>
+
+Obtain a list of Perl library paths from C<@INC> variable, except for
+current directory.  The RPM_PERL_LIB_PATH environment variable, if set,
+is treated as a list of paths, seprarated by colons; put these paths
+in front of the list.  Canonicalize each path in the list.
+
+Finally, the RPM_BUILD_ROOT environment variable, if set, is treated as
+installation root directory; each element of the list is then prefixed
+with canonicalized RPM_BUILD_ROOT path and new values are put in front
+of the list.
+
+After all, only existent directories are returned.
+
+=cut
+
+my @inc;
+sub inc {
+	return @inc if @inc;
+	my $root = $ENV{RPM_BUILD_ROOT}; $root &&= rel2abs($root);
+	unshift @inc, map rel2abs($_), grep $_ ne ".", @INC;
+	unshift @inc, map rel2abs($_), $ENV{RPM_PERL_LIB_PATH} =~ /([^:]+)/g;
+	unshift @inc, map "$root$_", @inc if $root;
+	return @inc = grep -d, @inc;
+}
+
+=item	B<explode>
+
+Split given filename into its prefix (which is a valid Perl library
+path, according to the inc() function above) and basename.  Return empty
+list if filename does not match any prefix.
+
+=cut
+
+sub explode ($) {
+	my $fname = shift;
+	my ($prefix) =	sort { length($b) <=> length($a) }
+			grep { index($fname, $_) == 0 } inc();
+	return unless $prefix;
+	my $delim = substr $fname, length($prefix), 1;
+	return unless $delim eq "/";
+	my $basename = substr $fname, length($prefix) + 1;
+	return unless $basename;
+	return ($prefix, $basename);
+}
+
 1;
 
 __END__
+
+=back
 
 =head1	AUTHOR
 

@@ -19,7 +19,7 @@ use strict;
 use B qw(class begin_av init_av main_cv main_root OPf_KIDS walksymtable);
 use PerlReq::Utils qw(mod2path path2mod path2dep verf verf_perl sv_version);
 
-our $VERSION = 0.5;
+our $VERSION = "0.5.1";
 
 our ($CurCV, $CurEval, $CurLine);
 our ($Strict, $Relaxed, $Verbose, $Debug);
@@ -27,16 +27,18 @@ our ($Strict, $Relaxed, $Verbose, $Debug);
 our @Skip = (
 	qr(^Makefile\b),
 # OS-specific
-	qr(^machine/ansi\b),	# gcc 3.3 stddef.h (FreeBSD 4)
-	qr(^sys/_types\b),	# gcc 3.3 stddef.h (FreeBSD 5)
-	qr(^sys/systeminfo\b),
-	qr(^Mac\b),
-	qr(^MacPerl\b),
+	qr(^machine/ansi\b),		# gcc 3.3 stddef.h (FreeBSD 4)
+	qr(^sys/_types\b),		# gcc 3.3 stddef.h (FreeBSD 5)
+	qr(^sys/systeminfo\b),		# solaris
+	qr(^Convert/EBCDIC\b),		# os390
+	qr(^ExtUtils/XSSymSet\b),	# VMS
+	qr(\bOS2|OS2\b),
+	qr(\bMacPerl|\bMac\b),
+	qr(\bMacOS|MacOS\b),
+	qr(\bMacOSX|MacOSX\b),
 	qr(\bvmsish\b),
-	qr(\bVMS\b),
-	qr(\bWin32),
-	qr(^ExtUtils/XSSymSet\b),
-	qr(^Convert/EBCDIC\b),
+	qr(\bVMS|VMS\b),
+	qr(\bWin32|Win32\b),
 # most common
 	qr(^Carp\.pm$),
 	qr(^DynaLoader\.pm$),
@@ -253,9 +255,13 @@ END {
 
 __END__
 
+=for comment
+We use C<print STDERR> instead of C<warn> because we don't want to
+trigger C<$SIG{__WARN__}>, which affects files that use L<diagnostics>.
+
 =head1	NAME
 
-B::Deparse - Perl compiler backend to extract perl dependencies
+B::PerlReq - Perl compiler backend to extract Perl dependencies
 
 =head1	SYNOPSIS
 
@@ -264,9 +270,10 @@ B<perl> B<-MO=PerlReq>[B<,-strict>][B<,-relaxed>][B<,-v>][B<,-d>] I<prog.pl>
 =head1	DESCRIPTION
 
 B::PerlReq is a backend module for the Perl compiler that extracts
-dependencies from perl source code, based on the internal compiled
-structure that perl itself creates after parsing a program. The output
-of B::PerlReq is suitable for automatic dependency tracking.
+dependencies from Perl source code, based on the internal compiled
+structure that Perl itself creates after parsing a program. The output
+of B::PerlReq is suitable for automatic dependency tracking (e.g. for
+RPM packaging).
 
 =head1	OPTIONS
 

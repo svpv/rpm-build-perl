@@ -1,11 +1,12 @@
 Name: rpm-build-perl
-Version: 0.5
-Release: alt1
+Version: 0.5.1
+Release: alt2
 
-Summary: RPM helper scripts that calculate Perl dependencies
+Summary: RPM helper scripts to calculate Perl dependencies
 License: GPL
 Group: Development/Other
 
+URL: %CPAN %name
 Source: %name-%version.tar.gz
 
 # http://www.google.com/search?q=%22base.pm+and+eval%22&filter=0
@@ -18,7 +19,7 @@ Requires: perl(B.pm) perl(O.pm) perl(Safe.pm)
 Conflicts: rpm-build <= 4.0.4-alt24
 Conflicts: perl-devel <= 1:5.8.1-alt4
 
-# Automatically added by buildreq on Sun Dec 05 2004
+# Automatically added by buildreq on Wed Dec 22 2004
 BuildRequires: perl-devel
 
 %description
@@ -58,6 +59,16 @@ tags for the package.
 %config	%_sysconfdir/rpm/macros.d/perl5
 
 %changelog
+* Thu Dec 23 2004 Alexey Tourbin <at@altlinux.ru> 0.5.1-alt2
+- perl.req: explode() was not imported
+
+* Wed Dec 22 2004 Alexey Tourbin <at@altlinux.ru> 0.5.1-alt1
+- released on CPAN (see %url)
+- perl.prov: workaround perl bug #32967
+- added partial support for relative paths
+- restored OS2 pattern in skip lists (Andrei Bulava, #5713)
+- enhanced error handling and debugging output
+
 * Mon Dec 06 2004 Alexey Tourbin <at@altlinux.ru> 0.5-alt1
 - bumped version (0.3 -> 0.5) to reflect major changes
 - implemented B::PerlReq and made perl.req use it instead of B::Deparse

@@ -4,7 +4,7 @@ use 5.006;
 use strict;
 
 use Config qw(%Config);
-use PerlReq::Utils qw(adjust_inc verf mod2dep);
+use PerlReq::Utils qw(argv inc explode verf mod2dep);
 
 use Getopt::Long qw(GetOptions);
 GetOptions "m|method=s" => \my $Method,
@@ -16,19 +16,27 @@ $Method ||= $ENV{RPM_PERL_REQ_METHOD} || "normal";
 $Method =~ s/\s//g;
 $Method eq "strict" || $Method eq "normal" || $Method eq "relaxed" ||
 	die "$0: strict, normal, relaxed methods supported\n";
+$| = 1;
 
 my @Skip = (
 	qr(/usr/share/doc/),
 	qr(/[Dd]emos?/),
 	qr(/examples?/),
-	qr(\bVMS\b),
+	qr(\bOS2|OS2\b),
+	qr(\bMacPerl|\bMac\b),
+	qr(\bMacOS|MacOS\b),
+	qr(\bMacOSX|MacOSX\b),
+	qr(\bvmsish\b),
+	qr(\bVMS|VMS\b),
+	qr(\bWin32|Win32\b),
 );
 
-sub prereq_pm () {
+sub prereq_pm {
 	my %prereq;
 	my $dir = $ENV{RPM_BUILD_ROOT} || ".";
 	open my $fh, "$dir/.perl.req"
 		or return;
+	warn "# processing $dir/.perl.req\n" if $Verbose;
 	local $_ = join "" => <$fh>;
 	while (s/perl\(([\w:]+)\)>=([\d._]+)//) {
 		$prereq{mod2dep($1)} ||= $2 ? verf($2) : undef;
@@ -42,21 +50,13 @@ my %req;
 # process PRINT_PREREQ output
 my %prereq = prereq_pm();
 
-# fake paths should take precedence
-my @inc = adjust_inc();
-
 # begin
-$| = 1;
-foreach (@ARGV ? @ARGV : <>) {
-	chomp;
-	next unless $_;
-	process_file($_);
-}
+process_file($_) foreach argv();
 
 sub process_file {
 	my $fname = shift;
 	if ($Method ne "strict" and grep { $fname =~ $_ } @Skip) {
-		warn "# $fname (builtin SKIP)\n" if $Verbose;
+		warn "# $fname (builtin SKIP)\n";
 		return;
 	}
 	warn "# processing $fname\n" if $Debug;
@@ -72,9 +72,7 @@ sub process_file {
 		die "# $fname: deparse failed.\n";
 	}
 
-	my ($prefix) =
-		sort { length($b) <=> length($a) }
-		grep { index($fname, $_) == 0 } @inc;
+	my ($prefix, $basename) = explode($fname);
 
 # we are not quite sure this is perl file
 	unless ($prefix) {
@@ -94,14 +92,12 @@ sub process_file {
 #	...
 #	bytes_heavy.pl          implies bytes.pm        loaded
 #
-	my $super = $fname;
-	$super =~ s/^\Q$prefix\E\/?//
-		or goto bad;
+	my $super = $basename;
 	$super =~ s/\//::/g and $super =~ s/(.+)::.*/$1/
 		or
 	$super =~ s/(.+)_\w+\.pl$/$1/
 		or goto bad;
-	warn "$fname\: deparse failed, trying to recover with -M$super\n";
+	warn "$fname: deparse failed, trying to recover with -M$super\n";
 	my $ok2 = do_deparse($fname, "-M$super");
 	goto bad unless $ok2;
 	return;
@@ -111,7 +107,7 @@ bad:
 
 sub shebang_options {
 	my $fname = shift;
-	open (my $fh, "<", $fname) or die "$0: $fname: $!\n";
+	open my $fh, $fname or die "$0: $fname: $!\n";
 	my $shebang = <$fh>;
 	chomp $shebang;
 	my @argv;
@@ -160,7 +156,7 @@ sub do_deparse {
 #   fake %buildroot-dependent paths takes precedence at INIT stage;
 #   affected packages: autoconf
 	push @pipe, "-I/usr/lib/rpm", "-Mfake" if $Method ne "strict";
-	push @pipe, map { "-I$_" } @inc;
+	push @pipe, map { "-I$_" } inc();
 	my $MO = "-MO=PerlReq";
 	$MO .= ",-$Method" if $Method ne "normal";
 	$MO .= ",-verbose" if $Verbose;
@@ -170,26 +166,36 @@ sub do_deparse {
 	warn "# pipe: @pipe\n" if $Debug;
 
 # do deparse
-	open(PIPE, "-|", @pipe) or die "$0: @pipe: $!\n";
-	while (<PIPE>) {
+	open my $pipe, "-|", @pipe or die "$0: @pipe: $!\n";
+	local $_;
+	while (<$pipe>) {
 		my ($dep, undef, $v) = split;
 		unless ($dep =~ /^perl\b/) {
 			warn "# invalid dep: $_\n";
 			next;
 		}
-		$req{$dep} ||= $v;
+		if ($v) {
+			$req{$dep}{$v} = undef;
+		} else {
+			$req{$dep} ||= undef;
+		}
 	}
 # flush buffers
-	1 while <PIPE>;
-	return close PIPE;
+	1 while <$pipe>;
+	return close $pipe;
 }
 
 # end
-foreach (sort { uc($a) cmp uc($b) } keys %req) {
-	my $v = $req{$_};
-	$v = $prereq{$_} if $prereq{$_} gt $v;
-	print $_ . ($v ? " >= $v\n" : "\n");
+foreach my $k (sort { uc($a) cmp uc($b) } keys %req) {
+	my $vv = $req{$k};
+	$$vv{$prereq{$k}} = undef if $prereq{$k};
+	if ($vv) {
+		print "$k >= $_\n" foreach sort keys %$vv;
+	} else {
+		print "$k\n";
+	}
 }
+
 
 # auxiliary stuff
 sub count($$) {
@@ -202,7 +208,7 @@ sub isPerl {
 	open(FILE, $fname) || die "$0: $fname: $!\n";
 	local $_ = join "" => <FILE>;
 	close FILE;
-	warn "# checking if $fname is perl source\n" if $Debug;;
+	warn "# checking if $fname is perl source\n" if $Verbose;
 	my ($n, @n);
 
 # POSITIVE
@@ -272,13 +278,13 @@ B<perl.req> [B<-m> I<method>] [B<-v>] [B<-d>] [I<file>]...
 
 =head1	DESCRIPTION
 
-This script extracts prerequisites from each Perl source I<file>
+This script calculates prerequisites for each Perl source I<file>
 specified on a command line; alternatively, a list of files is obtained
 from standard input, one file per line.  C<use>, C<require> and C<do>
-statements are processed. The output of perl.req is suitable for
-automatic dependency tracking.
+statements are processed.  The output of perl.req is suitable for
+automatic dependency tracking (e.g. for RPM packaging).
 
-E.g. F</usr/lib/perl5/File/Temp.pm> requires, in particular,
+For example, F</usr/lib/perl5/File/Temp.pm> requires, in particular,
 C<< perl(Fcntl.pm) >= 1.030 >> (as of perl-5.8.6).
 
 perl.req is basically a wrapper for L<B::PerlReq> Perl compiler backend.
@@ -304,10 +310,10 @@ C<eval> blocks.
 
 =item	B<normal> (default)
 
-Enable moderate search most acceptable for automatic dependency
-tracking.  That is, skip files known to be platform-specific; skip
-platform-specific requirements and those found inside C<eval> blocks;
-skip most common requirements (e.g. C<strict.pm>).
+Enable moderate search most acceptable for RPM packaging.  That is,
+skip files known to be platform-specific; skip platform-specific
+requirements and those found inside C<eval> blocks; skip most common
+requirements (e.g. C<strict.pm>).
 
 =item	B<relaxed>
 
@@ -338,7 +344,7 @@ with contributions from Mikhail Zabaluev <mhz@altlinux.org>.
 
 =head1	HISTORY
 
-Initial version of perl.req (a part of RPM 3.0) done by Ken Estes
+Initial version of perl.req (part of RPM 3.0) done by Ken Estes
 in 1999.  Regular expressions were used to extract dependencies.
 (Later a part of ALT Linux Master 2.0, with modifications from Mikhail
 Zabaluev.)
@@ -347,11 +353,12 @@ Reworked in November 2002: complicated regular expressions were added to
 enhance search; methods added.  (Later a part of ALT Linux Master 2.2.)
 
 Reworked in September 2003: L<B::Deparse> was utilized to re-format Perl
-code before dependency extraction; thus got more simple and accurate.
+code before dependency extraction; hence more simple and accurate.
 Decoupled from rpm-build package into rpm-build-perl.  (Later a part of
 ALT Linux Master 2.4.)
 
-Reworked in December 2004: L<B::PerlReq> was developed.
+Reworked in December 2004: L<B::PerlReq> was developed.  Released on
+CPAN, see L<http://search.cpan.org/dist/rpm-build-perl/>.
 
 =head1	COPYING
 

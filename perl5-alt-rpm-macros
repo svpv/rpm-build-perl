@@ -37,7 +37,7 @@ _perl_vendor_MM_build() { \
 	: writing Makefile \
 	%__perl Makefile.PL PREFIX=%_prefix INSTALLDIRS=vendor "$@" </dev/null \
 	: running make \
-	%make_build OPTIMIZE="%{!?_enable_debug:%perl_vendor_optflags}%{?_enable_debug:%optflags}%{?_enable_Werror: -Werror}" \
+	%make_build OPTIMIZE="%{!?_enable_debug:%perl_vendor_optflags}%{?_enable_debug:%optflags}%{?_enable_Werror: -Werror}" CP="%__cp -p" \
 	%{?!_without_test:%{?!_disable_test:: running tests; LD_BIND_NOW=1 PERL_DL_NONLAZY=1 %make test %{?_enable_debug:TEST_VERBOSE=1}}} \
 } \
 _perl_vendor_fixin() { \
@@ -72,7 +72,7 @@ _perl_vendor_MB_install() { \
 } \
 _perl_vendor_MM_install() { \
 	: installing \
-	%make_install UNINST=undef \\\
+	%make_install UNINST=undef CP="%__cp -p" \\\
 		DESTDIR=%buildroot PREFIX=%_prefix INSTALLDIRS=vendor \\\
 		INSTALLMAN1DIR=%buildroot%perl_vendor_man1dir \\\
 		INSTALLMAN3DIR=%buildroot%perl_vendor_man3dir \\\
