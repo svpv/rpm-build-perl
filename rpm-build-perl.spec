@@ -1,6 +1,6 @@
 Name: rpm-build-perl
 Version: 0.5.1
-Release: alt3
+Release: alt4
 
 Summary: RPM helper scripts to calculate Perl dependencies
 License: GPL
@@ -22,7 +22,7 @@ Requires: perl(B.pm) perl(O.pm) perl(Safe.pm)
 Conflicts: rpm-build <= 4.0.4-alt24
 Conflicts: perl-devel <= 1:5.8.1-alt4
 
-# Automatically added by buildreq on Wed Mar 16 2005
+# Automatically added by buildreq on Wed Apr 06 2005
 BuildRequires: perl-devel
 
 %description
@@ -62,6 +62,10 @@ tags for the package.
 %config	%_sysconfdir/rpm/macros.d/perl5
 
 %changelog
+* Wed Apr 06 2005 Alexey Tourbin <at@altlinux.ru> 0.5.1-alt4
+- perl.req: track PerlIO dependencies for "open" and "binmode"
+- perl.prov: allow more opcodes for Safe->reval
+
 * Wed Mar 16 2005 Alexey Tourbin <at@altlinux.ru> 0.5.1-alt3
 - %name.spec: use the same %_prefix/lib/rpm directory on x86_64
 - perl.prov: decrease verbosity when processing *.al files

@@ -38,7 +38,7 @@ _perl_vendor_MM_build() { \
 	%__perl Makefile.PL PREFIX=%_prefix INSTALLDIRS=vendor "$@" </dev/null \
 	: running make \
 	%make_build OPTIMIZE="%{!?_enable_debug:%perl_vendor_optflags}%{?_enable_debug:%optflags}%{?_enable_Werror: -Werror}" CP="%__cp -p" \
-	%{?!_without_test:%{?!_disable_test:: running tests; LD_BIND_NOW=1 PERL_DL_NONLAZY=1 %make test CP="%__cp -p" %{?_enable_debug:TEST_VERBOSE=1}}} \
+	%{?!_without_test:%{?!_disable_test:: running tests; LD_BIND_NOW=1 PERL_DL_NONLAZY=1 %make test CP="%__cp -p" %{?_enable_debug:TEST_VERBOSE=1} </dev/null}} \
 } \
 _perl_vendor_fixin() { \
 	find . -type f -print0 | xargs -r0 %__subst -p \\\

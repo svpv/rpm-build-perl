@@ -98,4 +98,10 @@ cmp_ok "perl-base >= 1:5.6.0\n$d", 'eq', grok qq(require 5.006; *x = sub { requi
 cmp_ok "$d\n$d2", "eq", grok qq(require $m; *x = sub { require $m2; };);
 cmp_ok "$d\n$d2", "eq", grok qq(require $m; my \$x = sub { require $m2; };);
 
+cmp_ok "perl(PerlIO.pm)\nperl(PerlIO/scalar.pm)", "eq", grok q(open FH, "<", \$ref);
+cmp_ok "perl(PerlIO.pm)\nperl(PerlIO/scalar.pm)", "eq", grok q(open my $fh, "<", \my $ref);
+
+cmp_ok "perl(PerlIO.pm)\nperl(PerlIO/encoding.pm)\nperl(Encode.pm)", "eq", grok q(open FH, "<:encoding(cp1251)", $0);
+cmp_ok "perl(PerlIO.pm)\nperl(PerlIO/encoding.pm)\nperl(Encode.pm)", "eq", grok q(binmode STDOUT, ":encoding(cp1251)");
+
 #END { $? = 0; }

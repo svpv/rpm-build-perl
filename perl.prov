@@ -98,7 +98,8 @@ sub extract_version {
 
 	use Safe;
 	my $safe = Safe->new;
-	$safe->permit_only(qw(:base_core :base_mem :base_orig));
+	$safe->permit_only(qw(:base_core :base_mem :base_orig
+		entereval grepstart grepwhile mapstart mapwhile));
 	my $version = $safe->reval($code);
 	goto bad if $@ or not $version;
 

@@ -21,7 +21,7 @@ use PerlReq::Utils qw(mod2path path2mod path2dep verf verf_perl sv_version);
 
 our $VERSION = "0.5.1";
 
-our ($CurCV, $CurEval, $CurLine);
+our ($CurCV, $CurEval, $CurLine, $CurDepth);
 our ($Strict, $Relaxed, $Verbose, $Debug);
 
 our @Skip = (
@@ -57,30 +57,36 @@ sub const_sv ($) {
 sub RequiresPerl ($) {
 	my $v = shift;
 	my $dep = "perl-base >= " . verf_perl($v);
+	my $msg = "$dep at line $CurLine (depth $CurDepth)";
 	if (not $Strict and $v < 5.006) {
-		print STDERR "# $dep at line $CurLine (old perl SKIP)\n" if $Verbose;
+		print STDERR "# $msg old perl SKIP\n" if $Verbose;
 		return;
 	}
-	print STDERR "# $dep at line $CurLine\n" if $Verbose;
+	print STDERR "# $msg REQ\n" if $Verbose;
 	print "$dep\n";
 }
 
 sub Requires ($$) {
 	my ($f, $v) = @_;
 	my $dep = path2dep($f) . ($v ? " >= " . verf($v) : "");
+	my $msg = "$dep at line $CurLine (depth $CurDepth)";
 	if ($f !~ /^\w+(?:\/\w+(?:-\w+)?)*\.p[lmh]$/) { # bits/ioctl-types.ph
-		print STDERR "# $dep at line $CurLine (invalid SKIP)\n";
+		print STDERR "# $msg invalid SKIP\n";
 		return;
 	}
 	if (not $Strict and grep { $f =~ $_ } @Skip) {
-		print STDERR "# $dep at line $CurLine (builtin SKIP)\n" if $Verbose;
+		print STDERR "# $msg builtin SKIP\n" if $Verbose;
 		return;
 	}
 	if (not $Strict and $CurEval) {
-		print STDERR "# $dep at line $CurLine inside eval (SKIP)\n";
+		print STDERR "# $msg inside eval SKIP\n";
 		return;
 	}
-	print STDERR "# $dep at line $CurLine\n" if $Verbose;
+	if ($Relaxed and $CurDepth > 4) {
+		print STDERR "# $msg deep SKIP\n";
+		return;
+	}
+	print STDERR "# $msg REQ\n" if $Verbose;
 	print "$dep\n";
 }
 
@@ -156,9 +162,37 @@ sub grok_req ($) {
 		if $m eq "autouse";
 }
 
+sub grok_perlio ($) {
+	my $op = shift;
+	my $opname = $op->name;
+	$op = $op->first;
+	return unless $$op; $op = $op->sibling;
+	return unless $$op; $op = $op->sibling;
+	return unless $$op and $op->name eq "const";
+	my $sv = const_sv($op);
+	return unless $sv->can("PV");
+	my @layers = split /:/, $sv->PV;
+	if ($opname eq "open") {
+		my $mode = shift @layers;
+		return unless $mode =~ /[<>]/;
+	}
+	if (grep /^encoding[(]/ => @layers) {
+		Requires("PerlIO.pm", undef);
+		Requires("PerlIO/encoding.pm", undef);
+		Requires("Encode.pm", undef);
+	}
+	if ($opname eq "open") {
+		$op = $op->sibling;
+		return unless $$op and $op->name eq "srefgen";
+		Requires("PerlIO.pm", undef);
+		Requires("PerlIO/scalar.pm", undef);
+	}
+}
+
 sub grok_optree ($;$);
 sub grok_optree ($;$) {
 	my ($op, $level) = (@_, 1);
+	$CurDepth = $level;
 	$CurLine = $op->line if $op->can("line");
 	if ($CurEval and $level <= $CurEval) {
 		print STDERR "# exit eval at line $CurLine\n" if $Debug;
@@ -168,10 +202,8 @@ sub grok_optree ($;$) {
 		$CurEval = $level;
 		print STDERR "# enter eval at line $CurLine\n" if $Debug;
 	}
-	unless ($Relaxed and $level > 4) {
-		grok_req($op) if $op->name eq "require";
-		grok_req($op) if $op->name eq "dofile" and not $Relaxed;
-	}
+	grok_req($op) if $op->name eq "require" or $op->name eq "dofile";
+	grok_perlio($op) if $op->name eq "open" or $op->name eq "binmode";
 	if ($op->flags & OPf_KIDS) {
 		for (my $kid = $op->first; $$kid; $kid = $kid->sibling) {
 			grok_optree($kid, $level + 1);
@@ -210,7 +242,7 @@ sub grok_subs () {
 sub grok_blocks () {
 	for my $block (begin_av, init_av) {
 		next unless $block->isa("B::AV");
-		grok_cv($_) for $block->ARRAY;
+		grok_cv($_) foreach $block->ARRAY;
 	}
 }
 
