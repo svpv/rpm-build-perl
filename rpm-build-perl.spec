@@ -1,29 +1,25 @@
 Name: rpm-build-perl
-Version: 0.3
-Release: alt1.1
+Version: 0.5
+Release: alt1
 
 Summary: RPM helper scripts that calculate Perl dependencies
-License: GPL or LGPL
+License: GPL
 Group: Development/Other
 
-Source0: rpm-perl.req
-Source1: rpm-perl.prov
-Source2: rpm-fake.pm
-Source3: perl5-alt-rpm-macros
+Source: %name-%version.tar.gz
 
 # http://www.google.com/search?q=%22base.pm+and+eval%22&filter=0
 # http://www.google.com/search?q=%22base.pm%20import%20stuff%22&filter=0
 Patch0: perl5-alt-base_pm-syntax-hack.patch
 
 BuildArch: noarch
-
-Requires: %_sysconfdir/rpm/macros.d
-Requires: perl(B/Deparse.pm) perl(O.pm)
-
-BuildPreReq: perl(base.pm)
+Requires: perl(B.pm) perl(O.pm) perl(Safe.pm)
 
 Conflicts: rpm-build <= 4.0.4-alt24
 Conflicts: perl-devel <= 1:5.8.1-alt4
+
+# Automatically added by buildreq on Sun Dec 05 2004
+BuildRequires: perl-devel
 
 %description
 These herlper scripts will look at perl source files in your package,
@@ -31,37 +27,49 @@ and will use this information to generate automatic Requires and Provides
 tags for the package.
 
 %prep
-%setup -cT
-%__cp -a %SOURCE0 perl.req
-%__cp -a %SOURCE1 perl.prov
-%__cp -a %SOURCE2 fake.pm
-%__cp -a %SOURCE3 perl5
-%__cp -a %(eval "`%__perl -V:installprivlib`"; echo "$installprivlib")/base.pm .
+%setup -q
+%__cp -av %(eval "`%__perl -V:installprivlib`"; echo "$installprivlib")/base.pm .
 %patch0 -p4
 
 %build
-pod2man perl.req > perl.req.1
-pod2man perl.prov > perl.prov.1
+%perl_vendor_build
 
 %install
-%__install -pD -m755 perl.req	%buildroot%_libdir/rpm/perl.req
-%__install -pD -m755 perl.prov	%buildroot%_libdir/rpm/perl.prov
-%__install -pD -m644 base.pm	%buildroot%_libdir/rpm/base.pm
-%__install -pD -m644 fake.pm	%buildroot%_libdir/rpm/fake.pm
-%__install -pD -m644 perl.req.1	%buildroot%_man1dir/perl.req.1
-%__install -pD -m644 perl.prov.1 %buildroot%_man1dir/perl.prov.1
-%__install -pD -m644 perl5	%buildroot%_sysconfdir/rpm/macros.d/perl5
+%perl_vendor_install INSTALLSCRIPT=%_libdir/rpm
+%__mv %buildroot%perl_vendor_privlib/{base,fake}.pm %buildroot%_libdir/rpm
+%__ln_s `relative %perl_vendor_privlib/B %_libdir/rpm/B` %buildroot%_libdir/rpm/B
+%__ln_s `relative %perl_vendor_privlib/PerlReq %_libdir/rpm/PerlReq` %buildroot%_libdir/rpm/PerlReq
+
+%__mkdir_p %buildroot%_sysconfdir/rpm/macros.d
+%__cp -a perl5-alt-rpm-macros %buildroot%_sysconfdir/rpm/macros.d/perl5
 
 %files
+%doc README.ALT
 %_libdir/rpm/perl.req
 %_libdir/rpm/perl.prov
 %_libdir/rpm/base.pm
 %_libdir/rpm/fake.pm
-%_man1dir/perl.req.*
-%_man1dir/perl.prov.*
+#_libdir/rpm/B
+#_libdir/rpm/PerlReq
+%dir %perl_vendor_privlib/B
+%perl_vendor_privlib/B/PerlReq.pm
+%dir %perl_vendor_privlib/PerlReq
+%perl_vendor_privlib/PerlReq/Utils.pm
 %config	%_sysconfdir/rpm/macros.d/perl5
 
 %changelog
+* Mon Dec 06 2004 Alexey Tourbin <at@altlinux.ru> 0.5-alt1
+- bumped version (0.3 -> 0.5) to reflect major changes
+- implemented B::PerlReq and made perl.req use it instead of B::Deparse
+- new PerlReq::Utils module (convertion and formatting routines)
+- version numbers now rounded to 3 digits after decimal point
+- v-string versions now treated as floats (e.g. 1.2.3 -> 1.002)
+- all dependencies on particular perl version converted to 1:5.x.y form
+- enabled version extraction from PREREQ_PM in Makefile.PL
+- wrote/updated/enhanced documentation, started README.ALT
+- started test suite (more than 50 tests)
+- downgraded perl requirements to 5.6.0
+
 * Thu Jul 01 2004 Alexey Tourbin <at@altlinux.ru> 0.3-alt1.1
 - perl.req: removed duplicating code
 - macros.d/perl: fixed quoting
@@ -69,7 +77,7 @@ pod2man perl.prov > perl.prov.1
 * Sun Jun 20 2004 Alexey Tourbin <at@altlinux.ru> 0.3-alt1
 - macros.d/perl:
   + MDK compatibility: added %%perl_vendor{lib,arch}
-  + build: fix sharpbang magic lines with a weired sed expression
+  + build: fix sharpbang magic lines (with a weired sed expression)
   + MM_install: don't fake PREFIX, rather specify DESTDIR (for gimp-perl)
 - perl.req:
   + adjust LD_LIBRARY_PATH for libraries inside buildroot (Yury Konovalov)

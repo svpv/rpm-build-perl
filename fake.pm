@@ -1,6 +1,9 @@
 package fake;
 use strict;
 
+# UPDATE: this actually won't help to autoconf, because `use' statements
+# are executed at compile time.  So this file is basically a mistake. :)
+
 # from autoconf_2.5.spec:
 # %define __spec_autodep_custom_pre export autom4te_perllibdir=%buildroot%_datadir/%realname%suff
 #
@@ -10,10 +13,16 @@ use strict;
 #   my $datadir = $ENV{'autom4te_perllibdir'} || '/usr/share/autoconf-2.5';
 #   unshift @INC, "$datadir";
 # }
+# use Autom4te::ChannelDefs;
+# use Autom4te::Channels;
+# use Autom4te::Configure_ac;
+# use Autom4te::FileUtils;
+# use Autom4te::General;
+# use Autom4te::XFile;
 #
-# The problem is that whenever autoconf is getting built, files from
+# The problem is that whenever autoconf is getting built, modules from
 # /usr/share/autoconf-2.5 of already installed autoconf package are used
-# for dependency tracking.
+# instead of those in %buildroot.
 #
 # To solve this @INC should be reordered at INIT stage, so that %buildroot
 # directories take precedence.

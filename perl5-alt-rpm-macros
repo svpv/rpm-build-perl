@@ -4,9 +4,10 @@
 %perl_vendor_archlib	%(eval "`%__perl -V:installvendorarch`"; echo "$installvendorarch")
 %perl_vendor_autolib	%perl_vendor_archlib/auto
 
-# MDK compatible
+# MDK compatibility
 %perl_vendorlib		%perl_vendor_privlib
 %perl_vendorarch	%perl_vendor_archlib
+%makeinstall_std	%__make install DESTDIR=%buildroot
 
 # mandirs
 %perl_vendor_man1dir	%_man1dir
@@ -31,6 +32,8 @@ _perl_vendor_MB_build() { \
 _perl_vendor_MM_build() { \
 	%{?_without_smp:NPROCS=1; : NOTE: SMP-incompatible} \
 	%{?_disable_smp:NPROCS=1; : NOTE: SMP-incompatible} \
+	: looking for PREREQ dependencies \
+	%__perl Makefile.PL PRINT_PREREQ=1 "$@" </dev/null | tee .perl.req \
 	: writing Makefile \
 	%__perl Makefile.PL PREFIX=%_prefix INSTALLDIRS=vendor "$@" </dev/null \
 	: running make \
@@ -74,6 +77,7 @@ _perl_vendor_MM_install() { \
 		INSTALLMAN1DIR=%buildroot%perl_vendor_man1dir \\\
 		INSTALLMAN3DIR=%buildroot%perl_vendor_man3dir \\\
  		pure_install "$@" </dev/null \
+	if %__grep -Fqs 'perl(' .perl.req; then cat .perl.req >>%buildroot/.perl.req; fi \
 } \
 _perl_vendor_check_buildroot() { \
 	: prompting for files that contain /usr/local \

@@ -1,0 +1,129 @@
+#!/usr/bin/perl
+
+use 5.006;
+use strict;
+
+use PerlReq::Utils qw(adjust_inc mod2path path2dep verf sv_version);
+
+# list of provides
+my %prov;
+
+# fake paths should take precedence
+my @inc = adjust_inc();
+
+# begin
+foreach (@ARGV ? @ARGV : <>) {
+	chomp;
+	next unless $_;
+	process_file($_);
+}
+
+sub process_file {
+	my $fname = shift;
+
+# check if we match any prefix
+# and take the longest...
+	my ($prefix) =	sort { length($b) <=> length($a) }
+			grep { index($fname, $_) == 0 } @inc;
+	return unless $prefix;
+	my $basename = substr $fname, length $prefix;
+	$basename =~ s/^\///;
+	return unless $basename;
+
+# provide *.p[lh]
+	if ($fname =~ /\.p[lh]$/) {
+		$prov{$basename} = undef;
+		return;
+# only *.pm left
+	} elsif ($basename =~ /\.pm$/) {
+		$prov{$basename} = undef;
+	} else {
+		return;
+	}
+# process *.pm
+	my $in_package;
+	my $re_mod = qr/\b\w+(?:::\w+)*/;
+	open my $fh, '<', $fname or die "$0: $fname: $!\n";
+	while (<$fh>) {
+		chomp;
+		/^=\w/ .. /^=cut/ and next;
+	    	/^__(DATA|END)__$/ and last;
+# look for 'package' declaration
+		if (/^\s*package\s+($re_mod)\s*;/) {
+			$in_package = $1;
+# look for $VERSION
+		} elsif (/\$($re_mod)::VERSION\s*=.*\d/) {
+			next unless mod2path($1) eq $basename;
+			$prov{$basename} = extract_version($_);
+			last;
+		} elsif (/\$VERSION\s*=.*\d/) {
+			next unless mod2path($in_package) eq $basename;
+			$prov{$basename} = extract_version($_);
+			last;
+		}
+	}
+}
+
+# end
+while (my ($k, $v) = each %prov) {
+	print path2dep($k) . ($v ? " = $v\n" : "\n");
+}
+
+sub extract_version {
+	my $line = shift;
+
+# Try to evaluate the assignment to get the value of $VERSION.
+# It is usually computed without using data external to the expression,
+# so we would have no problems.
+	use Safe;
+	my $safe = Safe->new;
+	$safe->permit_only(qw(:base_core :base_mem :base_orig entereval
+			grepstart grepwhile mapstart mapwhile));
+	my $version = $safe->reval($line);
+	goto bad if $@ or not $version;
+	my $v = sv_version($version);
+	return verf($v) if $v;
+bad:
+	warn "# failed to extract version: $line\n";
+	warn "# $@\n" if $@;
+	return;
+}
+
+__END__
+
+=head1	NAME
+
+perl.prov - list what the given perl source provides
+
+=head1	SYNOPSIS
+
+B<perl.prov> [I<file>]...
+
+=head1	DESCRIPTION
+
+Alternatively, a list of files is obtained from standard input, one
+file per line.
+
+E.g. F</usr/lib/perl5/i386-linux/DB_File.pm> provides
+C<perl(DB_File.pm) = 1.810> (as of perl-5.8.6).
+
+perl.prov is a counterpart of L<perl.req> script.
+
+=head1	AUTHOR
+
+Written by Alexey Tourbin <at@altlinux.org>,
+based on an earlier version by Ken Estes <kestes@staff.mail.com>,
+with contributions from Mikhail Zabaluev <mhz@altlinux.org>.
+
+=head1	COPYING
+
+Copyright (c) 2003, 2004 Alexey Tourbin, ALT Linux Team.
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU Library General Public License as published by the
+Free Software Foundation; either version 2 of the License, or (at your
+option) any later version.
+
+=head1	SEE ALSO
+
+L<perl.req>
