@@ -276,7 +276,7 @@ sub process_file {
 		$X = "$ENV{RPM_BUILD_ROOT}$^X";
 		$ENV{LD_LIBRARY_PATH} .= ":$ENV{RPM_BUILD_ROOT}/usr/lib";
 	}
-	my @pipe = ($X, @argv, map { "-I$_" } @inc);
+	my @pipe = ($X, @argv);
 
 # known problems and workarounds:
 # - /usr/lib/rpm/base.pm apparently fixes possible dependency loops with base.pm 
@@ -285,6 +285,7 @@ sub process_file {
 #   fake %buildroot-dependent paths takes precedence at INIT stage;
 #   affected packages: autoconf
 	push @pipe, "-I/usr/lib/rpm", "-Mfake" if $method ne "strict";
+	push @pipe, map { "-I$_" } @inc;
 	push @pipe, "-MO=Deparse", "--", $fname;
 	debug("pipe: @pipe");
 
