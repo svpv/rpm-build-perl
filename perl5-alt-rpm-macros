@@ -79,7 +79,7 @@ _perl_vendor_check_buildroot() { \
 	: prompting for files that contain /usr/local \
 	find %buildroot -type f -exec %__grep -FH /usr/local {} ';' \
 	: prompting for files that contain /tmp \
-	find %buildroot -type f \! -name .packlist -exec %__grep -FH /tmp {} ';' \
+	find %buildroot -type f ! -name .packlist -exec %__grep -FH /tmp {} ';' \
 } \
 perl_vendor_install() { \
 	if [ -f Build.PL ]; then \
@@ -92,5 +92,5 @@ perl_vendor_install() { \
 perl_vendor_install
 
 # sugar
-%perl_fix_local %__subst 's,/usr/local\>,/usr,g'
+%perl_fix_local %__subst -p 's,/usr/local\\>,/usr,g'
 %CPAN() http://search.cpan.org/dist/%1/%nil

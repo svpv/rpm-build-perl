@@ -184,7 +184,8 @@ my @ignore_files = (
 my @ignore_reqs = (
 	qr(^Makefile\b),
 # OS-specific
-	qr(^machine/ansi\b),
+	qr(^machine/ansi\b),	# gcc 3.3 stddef.h (FreeBSD 4)
+	qr(^sys/_types\b),	# gcc 3.3 stddef.h (FreeBSD 5)
 	qr(^sys/systeminfo\b),
 	qr(^vmsish\b),
 	qr(^MacPerl\b),
@@ -324,20 +325,6 @@ sub do_deparse {
 # skip "syntax OK" messages
 #	use Fcntl;
 #	fcntl(STDERR, F_SETFD, 1) if !$debug && $method eq 'relaxed';
-
-	open (FILE, "<", $fname) or die "$fname: $!\n";
-	my $shebang = <FILE>;
-	chomp $shebang;
-	close FILE;
-	my @argv;
-	if ($shebang =~ s/^#!\s*\S*perl\S*\s*// && $shebang) {
-		local $_ = $shebang;
-		foreach my $arg (split) {
-			last if $arg =~ /^#/;
-			next if $arg eq "--";
-			push @argv, $arg;
-		}
-	}
 
 # construct pipe command
 	my $X = $^X;

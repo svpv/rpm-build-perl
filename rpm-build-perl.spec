@@ -1,6 +1,6 @@
 Name: rpm-build-perl
 Version: 0.3
-Release: alt1
+Release: alt1.1
 
 Summary: RPM helper scripts that calculate Perl dependencies
 License: GPL or LGPL
@@ -62,6 +62,10 @@ pod2man perl.prov > perl.prov.1
 %config	%_sysconfdir/rpm/macros.d/perl5
 
 %changelog
+* Thu Jul 01 2004 Alexey Tourbin <at@altlinux.ru> 0.3-alt1.1
+- perl.req: removed duplicating code
+- macros.d/perl: fixed quoting
+
 * Sun Jun 20 2004 Alexey Tourbin <at@altlinux.ru> 0.3-alt1
 - macros.d/perl:
   + MDK compatibility: added %%perl_vendor{lib,arch}
