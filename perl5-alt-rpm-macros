@@ -1,0 +1,63 @@
+
+# perl library paths
+%perl_vendor_privlib	%(eval "`%__perl -V:installvendorlib`"; echo "$installvendorlib")
+%perl_vendor_archlib	%(eval "`%__perl -V:installvendorarch`"; echo "$installvendorarch")
+%perl_vendor_autolib	%perl_vendor_archlib/auto
+
+# mandirs
+%perl_vendor_man1dir	%_man1dir
+%perl_vendor_man3dir	%_man3dir
+
+# perl version/build-specific binary token (PreReq: %perl_binary_compat)
+# ALT RPM inserts this dependency automatically since
+# Fri Oct 25 2002 Dmitry V. Levin <ldv@altlinux.org> 4.0.4-alt9
+%perl_binary_compat	%(eval "`%__perl -V:libperl`"; echo "$libperl")
+
+# build with the same optimization as perl
+%perl_vendor_optflags	%(eval "`%__perl -V:optimize`"; echo "$optimize")
+
+# automate various rpmbuild stages
+%perl_vendor_build \
+perl_vendor_build() { \
+	%{?_without_smp:NPROCS=1; : NOTE: SMP-incompatible} \
+	%{?_disable_smp:NPROCS=1; : NOTE: SMP-incompatible} \
+	: looking for PREREQ dependencies \
+	%__perl Makefile.PL PREFIX=%prefix INSTALLDIRS=vendor PRINT_PREREQ=1 "$@" </dev/null | tee .perl.req \
+	: writing Makefile \
+	%__perl Makefile.PL PREFIX=%prefix INSTALLDIRS=vendor "$@" </dev/null \
+	: running make \
+	%make_build OPTIMIZE="%{!?_enable_debug:%perl_vendor_optflags}%{?_enable_debug:%optflags}%{?_enable_Werror: -Werror}" \
+	%{?!_without_test:%{?!_disable_test:: running tests; LD_BIND_NOW=1 PERL_DL_NONLAZY=1 %make test %{?_enable_debug: TEST_VERBOSE=1}}} \
+	local BLIBS; BLIBS=`find blib -type f -name '*.so'` \
+	if [ -n "$BLIBS" ]; then \
+		: checking for undefined symbols \
+		echo 'int main(){return 0;}' >ldtest.c \
+		gcc ldtest.c -lperl $BLIBS \
+		LD_BIND_NOW=1 ./a.out \
+		rm -f ldtest.c ./a.out \
+	fi \
+} \
+perl_vendor_build
+
+%perl_vendor_install \
+perl_vendor_install() { \
+	: installing \
+	%make_install UNINST=undef PREFIX=%buildroot%prefix INSTALLDIRS=vendor \\\
+		INSTALLMAN1DIR=%buildroot%perl_vendor_man1dir INSTALLMAN3DIR=%buildroot%perl_vendor_man3dir \\\
+ 		"$@" pure_install </dev/null \
+	if %__grep -Fqs 'perl(' .perl.req; then cat .perl.req >>%buildroot/.perl.req; fi \
+	%{!?_enable_debug: \
+		: fixing \
+		find %buildroot%perl_vendor_privlib \\\
+			-type f '(' -name '*.al' -o -name '*.ix' ')' \\\
+			-exec %__perl -ni -e \\\
+			'/^#/ and $fixed=1 or print; END{print STDERR "$ARGV: comments removed\\n" if $fixed}' \\\
+			{} ';' } \
+	: prompting for files that contain /usr/local \
+	find %buildroot -type f -exec %__grep -H /usr/local {} ';' \
+} \
+perl_vendor_install
+
+# sugar
+%perl_fix_local %__subst 's|/usr/local|/usr|g'
+%CPAN() http://search.cpan.org/dist/%1/%nil
