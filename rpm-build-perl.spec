@@ -1,6 +1,6 @@
 Name: rpm-build-perl
-Version: 0.2
-Release: alt5
+Version: 0.3
+Release: alt1
 
 Summary: RPM helper scripts that calculate Perl dependencies
 License: GPL or LGPL
@@ -62,13 +62,22 @@ pod2man perl.prov > perl.prov.1
 %config	%_sysconfdir/rpm/macros.d/perl5
 
 %changelog
+* Sun Jun 20 2004 Alexey Tourbin <at@altlinux.ru> 0.3-alt1
+- macros.d/perl:
+  + MDK compatibility: added %%perl_vendor{lib,arch}
+  + build: fix sharpbang magic lines with a weired sed expression
+  + MM_install: don't fake PREFIX, rather specify DESTDIR (for gimp-perl)
+- perl.req:
+  + adjust LD_LIBRARY_PATH for libraries inside buildroot (Yury Konovalov)
+  + implemented tracker for dependencies like `use base qw(Foo Bar)'
+
 * Sat May 08 2004 Alexey Tourbin <at@altlinux.ru> 0.2-alt5
 - macros.d/perl: added build/install support for Module::Build
 
 * Wed Apr 28 2004 Alexey Tourbin <at@altlinux.ru> 0.2-alt4
 - perl.req:
-  + s/use v5.8.0/use v5.8.1/ (to stop questions)
-  + don't simply require perl-base (don't bloat out)
+  + s/use v5.8.0/use v5.8.1/ (to stop questions, it's all about B::Deparse)
+  + don't simply require perl-base (don't bloat out, it's in basesystem)
 - macros.d/perl
   + don't remove comments produced by autosplit (line numbering lost)
   + drop PRINT_PREREQ stuff for a while

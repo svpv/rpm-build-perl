@@ -4,6 +4,10 @@
 %perl_vendor_archlib	%(eval "`%__perl -V:installvendorarch`"; echo "$installvendorarch")
 %perl_vendor_autolib	%perl_vendor_archlib/auto
 
+# MDK compatible
+%perl_vendorlib		%perl_vendor_privlib
+%perl_vendorarch	%perl_vendor_archlib
+
 # mandirs
 %perl_vendor_man1dir	%_man1dir
 %perl_vendor_man3dir	%_man3dir
@@ -33,6 +37,10 @@ _perl_vendor_MM_build() { \
 	%make_build OPTIMIZE="%{!?_enable_debug:%perl_vendor_optflags}%{?_enable_debug:%optflags}%{?_enable_Werror: -Werror}" \
 	%{?!_without_test:%{?!_disable_test:: running tests; LD_BIND_NOW=1 PERL_DL_NONLAZY=1 %make test %{?_enable_debug:TEST_VERBOSE=1}}} \
 } \
+_perl_vendor_fixin() { \
+	find . -type f -print0 | xargs -r0 %__subst -p \\\
+	'1s,^#![[:space:]]*\\([^[:space:]]*/\\)\\?perl\\([^/[:alpha:][:space:]][^/[:space:]]*\\)\\?\\([[:space:]]\\|$\\),#!%__perl\\3,' \
+} \
 _perl_vendor_check_dso() { \
 	: checking for undefined symbols \
 	BLIBS="$BLIBS${BLIBS:+ }$(find $PWD/blib -type f -name '*.so' ||:)" \
@@ -43,10 +51,11 @@ _perl_vendor_check_dso() { \
 	rm -f ldtest.c ./a.out \
 } \
 perl_vendor_build() { \
+		_perl_vendor_fixin \
 	if [ -f Build.PL ]; then \
-		_perl_vendor_MB_build "$@"; \
+		_perl_vendor_MB_build "$@" \
 	else \
-		_perl_vendor_MM_build "$@"; \
+		_perl_vendor_MM_build "$@" \
 	fi \
 		_perl_vendor_check_dso \
 } \
@@ -60,27 +69,28 @@ _perl_vendor_MB_install() { \
 } \
 _perl_vendor_MM_install() { \
 	: installing \
-	%make_install UNINST=undef PREFIX=%buildroot%_prefix INSTALLDIRS=vendor \\\
+	%make_install UNINST=undef \\\
+		DESTDIR=%buildroot PREFIX=%_prefix INSTALLDIRS=vendor \\\
 		INSTALLMAN1DIR=%buildroot%perl_vendor_man1dir \\\
 		INSTALLMAN3DIR=%buildroot%perl_vendor_man3dir \\\
- 		"$@" pure_install </dev/null \
+ 		pure_install "$@" </dev/null \
 } \
 _perl_vendor_check_buildroot() { \
 	: prompting for files that contain /usr/local \
 	find %buildroot -type f -exec %__grep -FH /usr/local {} ';' \
 	: prompting for files that contain /tmp \
-	find %buildroot -type f -exec %__grep -FH /tmp {} ';' \
+	find %buildroot -type f \! -name .packlist -exec %__grep -FH /tmp {} ';' \
 } \
 perl_vendor_install() { \
 	if [ -f Build.PL ]; then \
-		_perl_vendor_MB_install "$@"; \
+		_perl_vendor_MB_install "$@" \
 	else \
-		_perl_vendor_MM_install "$@"; \
+		_perl_vendor_MM_install "$@" \
 	fi \
 		_perl_vendor_check_buildroot \
 } \
 perl_vendor_install
 
 # sugar
-%perl_fix_local %__subst 's|/usr/local|/usr|g'
+%perl_fix_local %__subst 's,/usr/local\>,/usr,g'
 %CPAN() http://search.cpan.org/dist/%1/%nil
