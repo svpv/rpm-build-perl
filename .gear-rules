@@ -1,4 +1,4 @@
-gzip: *.patch
+copy: *.patch
 copy: *.pm
 copy: *.prov
 copy: *.req

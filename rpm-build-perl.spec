@@ -1,6 +1,6 @@
 Name: rpm-build-perl
 Version: 0.2
-Release: alt4
+Release: alt5
 
 Summary: RPM helper scripts that calculate Perl dependencies
 License: GPL or LGPL
@@ -13,7 +13,7 @@ Source3: perl5-alt-rpm-macros
 
 # http://www.google.com/search?q=%22base.pm+and+eval%22&filter=0
 # http://www.google.com/search?q=%22base.pm%20import%20stuff%22&filter=0
-Patch0: perl5-alt-base_pm-syntax-hack.patch.gz
+Patch0: perl5-alt-base_pm-syntax-hack.patch
 
 BuildArch: noarch
 
@@ -35,6 +35,7 @@ tags for the package.
 %__cp -a %SOURCE0 perl.req
 %__cp -a %SOURCE1 perl.prov
 %__cp -a %SOURCE2 fake.pm
+%__cp -a %SOURCE3 perl5
 %__cp -a %(eval "`%__perl -V:installprivlib`"; echo "$installprivlib")/base.pm .
 %patch0 -p4
 
@@ -49,17 +50,21 @@ pod2man perl.prov > perl.prov.1
 %__install -pD -m644 fake.pm	%buildroot%_libdir/rpm/fake.pm
 %__install -pD -m644 perl.req.1	%buildroot%_man1dir/perl.req.1
 %__install -pD -m644 perl.prov.1 %buildroot%_man1dir/perl.prov.1
-%__install -pD -m644 %SOURCE3	%buildroot%_sysconfdir/rpm/macros.d/perl5
+%__install -pD -m644 perl5	%buildroot%_sysconfdir/rpm/macros.d/perl5
 
 %files
 %_libdir/rpm/perl.req
 %_libdir/rpm/perl.prov
 %_libdir/rpm/base.pm
 %_libdir/rpm/fake.pm
-%_man1dir/perl.*
+%_man1dir/perl.req.*
+%_man1dir/perl.prov.*
 %config	%_sysconfdir/rpm/macros.d/perl5
 
 %changelog
+* Sat May 08 2004 Alexey Tourbin <at@altlinux.ru> 0.2-alt5
+- macros.d/perl: added build/install support for Module::Build
+
 * Wed Apr 28 2004 Alexey Tourbin <at@altlinux.ru> 0.2-alt4
 - perl.req:
   + s/use v5.8.0/use v5.8.1/ (to stop questions)
