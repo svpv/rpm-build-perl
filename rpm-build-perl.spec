@@ -1,6 +1,6 @@
 Name: rpm-build-perl
 Version: 0.2
-Release: alt2.2
+Release: alt3
 
 Summary: RPM helper scripts that calculate Perl dependencies
 License: GPL or LGPL
@@ -60,6 +60,10 @@ pod2man perl.prov > perl.prov.1
 %config	%_sysconfdir/rpm/macros.d/perl5
 
 %changelog
+* Thu Feb 26 2004 Alexey Tourbin <at@altlinux.ru> 0.2-alt3
+- perl.req: try to recover with -M$superclass on failures
+- perl.prov: enhanced version detection
+
 * Mon Dec 22 2003 Alexey Tourbin <at@altlinux.ru> 0.2-alt2.2
 - yet another hot fix
 

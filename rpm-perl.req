@@ -249,11 +249,73 @@ sub process_file {
 		}
 	}
 	debug "processing $fname";
+
+	my $ok = do_deparse($fname);
+	return if $ok;
+
+# deparse failed, handle errors
+	if ($method eq 'relaxed') {
+		warn "$fname\: deparse failed, but I don't care.\n";
+		return;
+	} elsif ($method eq 'strict') {
+		die "$fname\: deparse failed.\n";
+	}
+
+	my ($prefix) =
+		sort { length($b) <=> length($a) }
+		grep { index($fname, $_) == 0 } @inc;
+
+# we are not quite sure this is perl file
+	unless ($prefix) {
+		my $v = isPerl($fname);
+		die "$fname\: deparse failed. isPerl=$v.\n" if $v > 0;
+		warn "$fname\: deparse failed, isPerl=$v, ok.\n";
+		return;
+	}
+
+# it's a module, try to recover
+	goto bad if $method eq "strict";
+# define superclass and try to use it
+# examples:
+# 	Math::BigInt::CalcEmu	implies	Math::BigInt	loaded
+#	...
+	my $super = $fname;
+	if ($super =~ s/^\Q$prefix\E\/?// && $super =~ s/\//::/g && $super =~ s/(.+)::.*/$1/) {
+		warn "deparse failed, trying to recover with -M$super\n";
+		my $ok2 = do_deparse($fname, "-M$super");
+		goto bad unless $ok2;
+		return;
+	}
+bad:
+	die "$fname\: deparse failed. prefix=$prefix\n";
+}
+
+sub shebang_options {
+	my $fname = shift;
+	open (my $fh, "<", $fname) or die;
+	my $shebang = <$fh>;
+	chomp $shebang;
+	my @argv;
+# look for #!/usr/bin/perl command line options
+	if ($shebang =~ s/^#!\s*\S*perl\S*\s*// && $shebang) {
+		local $_ = $shebang;
+		foreach my $arg (split) {
+			last if $arg =~ /^#/;
+			next if $arg eq "--";
+			push @argv, $arg;
+		}
+	}
+	return @argv;
+# autoclosed
+}
+
+sub do_deparse {
+	my ($fname, @add_arguments) = @_;
+
 # skip "syntax OK" messages
 #	use Fcntl;
 #	fcntl(STDERR, F_SETFD, 1) if !$debug && $method eq 'relaxed';
 
-# look for #!/usr/bin/perl command line options
 	open (FILE, "<", $fname) or die;
 	my $shebang = <FILE>;
 	chomp $shebang;
@@ -271,12 +333,12 @@ sub process_file {
 # construct pipe command
 	my $X = $^X;
 # what if we build perl itself?
-# find deps with new perl on order to avoid incompatible changes
+# find deps with new perl in order to avoid incompatible changes
 	if ($ENV{RPM_BUILD_ROOT} && -x "$ENV{RPM_BUILD_ROOT}$^X") {
 		$X = "$ENV{RPM_BUILD_ROOT}$^X";
 		$ENV{LD_LIBRARY_PATH} .= ":$ENV{RPM_BUILD_ROOT}/usr/lib";
 	}
-	my @pipe = ($X, @argv);
+	my @pipe = ($X, shebang_options($fname));
 
 # known problems and workarounds:
 # - /usr/lib/rpm/base.pm apparently fixes possible dependency loops with base.pm 
@@ -286,7 +348,7 @@ sub process_file {
 #   affected packages: autoconf
 	push @pipe, "-I/usr/lib/rpm", "-Mfake" if $method ne "strict";
 	push @pipe, map { "-I$_" } @inc;
-	push @pipe, "-MO=Deparse", "--", $fname;
+	push @pipe, @add_arguments, "-MO=Deparse", "--", $fname;
 	debug("pipe: @pipe");
 
 # do deparse
@@ -297,22 +359,7 @@ sub process_file {
 	}
 # flush buffers
 	1 while <PIPE>;
-	return if close PIPE;
-
-# deparse failed, handle errors
-	if ($method eq 'relaxed') {
-		warn "$fname\: deparse failed, but I don't care.\n";
-	} elsif ($method eq 'strict') {
-		die "$fname\: deparse failed.\n";
-	} else {
-		my ($prefix) =
-			sort { length($b) <=> length($a) }
-			grep { index($fname, $_) == 0 } @inc;
-		die "$fname\: deparse failed. prefix=$prefix\n" if $prefix;
-		my $v = isPerl($fname);
-		die "$fname\: deparse failed. isPerl=$v.\n" if $v > 0;
-		warn "$fname\: deparse failed, isPerl=$v, ok.\n";
-	}
+	return close PIPE;
 }
 
 # whether we are in BEGIN block

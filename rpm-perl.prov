@@ -80,15 +80,16 @@ sub process_file {
 	while (<FILE>) {
 		/^=\w/ .. /^=cut/ and next;
 	    	/^__(DATA|END)__$/ and last;
-# look for 'package' declaration that matches filename
+# look for 'package' declaration
 		if (/^\s*package\s+($re_mod)\s*;/) {
-			if ($basename eq package_filename($1)) {
-				$in_package = $1;
-			} else {
-				undef $in_package;
-			}
+			$in_package = $1;
 # look for $VERSION
-		} elsif ($in_package && m/\$(?:$in_package\::)?VERSION\s*=.*\d/) {
+		} elsif (/\$($re_mod)::VERSION\s*=.*\d/) {
+			next unless package_filename($1) eq $basename;
+			$prov{$basename} = extract_version($_);
+			last;
+		} elsif (/\$VERSION\s*=.*\d/) {
+			next unless package_filename($in_package) eq $basename;
 			$prov{$basename} = extract_version($_);
 			last;
 		}
@@ -138,6 +139,7 @@ sub extract_version {
 
 	if ($version =~ s/^\s*(\d[\d_]*(\.[\d_]*)?|\.[\d_]+)/$1/) {
 # plain old numeric version
+		$version .= '.0' unless $version =~ /\./;
 		return '0:' . $version;
 	} else {
 # Supposedly, a new style version evaluated as a string constant.
