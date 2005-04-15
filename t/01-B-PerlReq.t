@@ -89,6 +89,7 @@ cmp_ok '', 'eq', grok qq(my \$path="$f"; require \$path;);
 cmp_ok '', 'eq', grok qq(require "./Data/Dumper.pm";);
 
 cmp_ok "$d >= 2.0",			'eq', grok "require $m; $m->VERSION(2);";
+cmp_ok "$d >= 2.0",			'eq', grok "require $m; $m->require_version(2);";
 cmp_ok "perl(base.pm)\n$d",		'eq', grok "require base; base->import($m)";
 cmp_ok "perl(base.pm) >= 1.0\n$d",	'eq', grok "require base; base->VERSION(1); base->import($m)";
 cmp_ok "perl(base.pm) >= 1.0\n$d",	'eq', grok "require base; base->import($m); base->VERSION(1);";

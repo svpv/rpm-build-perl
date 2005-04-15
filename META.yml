@@ -6,6 +6,7 @@ version_from: lib/B/PerlReq.pm
 installdirs:  site
 requires:
     B:                             0
+    O:                             0
     Safe:                          0
     Test::More:                    0
 

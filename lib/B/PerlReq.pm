@@ -70,7 +70,7 @@ sub Requires ($$) {
 	my ($f, $v) = @_;
 	my $dep = path2dep($f) . ($v ? " >= " . verf($v) : "");
 	my $msg = "$dep at line $CurLine (depth $CurDepth)";
-	if ($f !~ /^\w+(?:\/\w+(?:-\w+)?)*\.p[lmh]$/) { # bits/ioctl-types.ph
+	if ($f !~ m#^\w+(?:[/-]\w+)*[.]p[lmh]$#) { # bits/ioctl-types.ph
 		print STDERR "# $msg invalid SKIP\n";
 		return;
 	}
@@ -120,8 +120,9 @@ sub grok_args ($$$) { # big bucks
 
 sub grok_version ($$) {
 	my ($op, $module) = @_;
-	$op = grok_args($op, $module, "VERSION");
-	return $op ? sv_version(const_sv($op)) : undef;
+	$op =	grok_args($op, $module, "VERSION") ||
+		grok_args($op, $module, "require_version") || return;
+	return sv_version(const_sv($op));
 }
 
 sub grok_import ($$) {
@@ -165,12 +166,10 @@ sub grok_req ($) {
 sub grok_perlio ($) {
 	my $op = shift;
 	my $opname = $op->name;
-	$op = $op->first;
-	return unless $$op; $op = $op->sibling;
-	return unless $$op; $op = $op->sibling;
-	return unless $$op and $op->name eq "const";
-	my $sv = const_sv($op);
-	return unless $sv->can("PV");
+	$op = $op->first; return unless $$op;
+	$op = $op->sibling; return unless $$op; 
+	$op = $op->sibling; return unless $$op and $op->name eq "const";
+	my $sv = const_sv($op); return unless $sv->can("PV");
 	my @layers = split /:/, $sv->PV;
 	if ($opname eq "open") {
 		my $mode = shift @layers;
@@ -189,6 +188,22 @@ sub grok_perlio ($) {
 	}
 }
 
+# TODO
+sub grok_exporter ($) {
+	my $op = shift;
+	my $meth_sv = const_sv($op); return unless $meth_sv->can("PV");
+	my $meth = $meth_sv->PV; return unless $meth eq "require_version" or $meth eq "VERSION";
+	$op = $op->next; return unless $$op and $op->name eq "entersub";
+	$op = $op->first; return unless $$op and $op->name eq "pushmark";
+	$op = $op->sibling; return unless $$op and $op->name eq "const";
+	my $pkg_sv = const_sv($op); return unless $pkg_sv->can("PV");
+	my $pkg = $pkg_sv->PV;
+	$op = $op->sibling; return unless $$op and $op->name eq "const";
+	my $ver_sv = const_sv($op); return unless $ver_sv->can("NV");
+	my $ver = $ver_sv->NV; return unless $ver;
+	Requires(mod2path($pkg), $ver);
+}
+
 sub grok_optree ($;$);
 sub grok_optree ($;$) {
 	my ($op, $level) = (@_, 1);
@@ -204,6 +219,8 @@ sub grok_optree ($;$) {
 	}
 	grok_req($op) if $op->name eq "require" or $op->name eq "dofile";
 	grok_perlio($op) if $op->name eq "open" or $op->name eq "binmode";
+# TODO
+#	grok_exporter($op) if $op->name eq "method_named";
 	if ($op->flags & OPf_KIDS) {
 		for (my $kid = $op->first; $$kid; $kid = $kid->sibling) {
 			grok_optree($kid, $level + 1);

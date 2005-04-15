@@ -19,9 +19,9 @@ $Method eq "strict" || $Method eq "normal" || $Method eq "relaxed" ||
 $| = 1;
 
 my @Skip = (
-	qr(/usr/share/doc/),
-	qr(/[Dd]emos?/),
-	qr(/examples?/),
+#	qr(/usr/share/doc/),
+#	qr(/[Dd]emos?/),
+#	qr(/examples?/),
 	qr(\bOS2|OS2\b),
 	qr(\bMacPerl|\bMac\b),
 	qr(\bMacOS|MacOS\b),
@@ -37,9 +37,17 @@ sub prereq_pm {
 	open my $fh, "$dir/.perl.req"
 		or return;
 	warn "# processing $dir/.perl.req\n" if $Verbose;
-	local $_ = join "" => <$fh>;
-	while (s/perl\(([\w:]+)\)>=([\d._]+)//) {
-		$prereq{mod2dep($1)} ||= $2 ? verf($2) : undef;
+	local $_ = join "" => grep /^perl[(]/ => <$fh>;
+	while (s/\bperl[(]([\w:]+)[)]>=([\d._]+)//) {
+		my $dep = mod2dep($1);
+		my $ver = $2 ? verf($2) : undef;
+		if ($ver) {
+			warn "#\t$dep >= $ver\n" if $Verbose;
+			$prereq{$dep}{$ver} = undef;
+		} else {
+			warn "#\t$dep\n" if $Verbose;
+			$prereq{$dep} ||= undef;
+		}
 	}
 	return %prereq;
 }
@@ -55,14 +63,15 @@ process_file($_) foreach argv();
 
 sub process_file {
 	my $fname = shift;
-	if ($Method ne "strict" and grep { $fname =~ $_ } @Skip) {
+	my ($prefix, $basename) = explode($fname);
+
+	if ($Method ne "strict" and $basename and grep { $basename =~ $_ } @Skip) {
 		warn "# $fname (builtin SKIP)\n";
 		return;
 	}
 	warn "# processing $fname\n" if $Debug;
 
-	my $ok = do_deparse($fname);
-	return if $ok;
+	do_deparse($fname) and return;
 
 # deparse failed, handle errors
 	if ($Method eq "relaxed") {
@@ -71,8 +80,6 @@ sub process_file {
 	} elsif ($Method eq "strict") {
 		die "# $fname: deparse failed.\n";
 	}
-
-	my ($prefix, $basename) = explode($fname);
 
 # we are not quite sure this is perl file
 	unless ($prefix) {
@@ -141,7 +148,7 @@ sub do_deparse {
 		}
 # adjust LD_LIBRARY_PATH if there are libraries inside buildroot
 # spotted by Yury Konovalov
-		for my $libdir (split ' ', $Config{libpth}) {
+		for my $libdir ("/usr/lib64", "/usr/lib") {
 			next unless glob "$ENV{RPM_BUILD_ROOT}$libdir/lib*.so*";
 			$ENV{LD_LIBRARY_PATH} .= ":" if $ENV{LD_LIBRARY_PATH};
 			$ENV{LD_LIBRARY_PATH} .= "$ENV{RPM_BUILD_ROOT}$libdir";
@@ -187,10 +194,9 @@ sub do_deparse {
 
 # end
 foreach my $k (sort { uc($a) cmp uc($b) } keys %req) {
-	my $vv = $req{$k};
-	$$vv{$prereq{$k}} = undef if $prereq{$k};
-	if ($vv) {
-		print "$k >= $_\n" foreach sort keys %$vv;
+	my %ver = map { $_ ? %$_ : () } $req{$k}, $prereq{$k};
+	if (%ver) {
+		print "$k >= $_\n" foreach sort { $a <=> $b } keys %ver;
 	} else {
 		print "$k\n";
 	}
