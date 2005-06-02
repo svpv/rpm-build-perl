@@ -1,6 +1,5 @@
 #!/usr/bin/perl
 
-use 5.006_001;
 use strict;
 
 use Config qw(%Config);
@@ -159,6 +158,9 @@ sub do_deparse {
 # known problems and workarounds:
 # - /usr/lib/rpm/base.pm apparently fixes possible dependency loops with base.pm
 #   that make syntax check impossible; affected packages: perl-Tk, perl-Video-DVDRip
+#   See also:
+#   http://www.google.com/search?q="base.pm+and+eval"&filter=0
+#   http://www.google.com/search?q="base.pm+import+stuff"&filter=0
 # - /usr/lib/rpm/fake.pm (preloaded with `use') rearranges @INC entries so that
 #   fake %buildroot-dependent paths takes precedence at INIT stage;
 #   affected packages: autoconf
@@ -173,6 +175,7 @@ sub do_deparse {
 	warn "# pipe: @pipe\n" if $Debug;
 
 # do deparse
+	use 5.007_001; # the list form of open() for pipes
 	open my $pipe, "-|", @pipe or die "$0: @pipe: $!\n";
 	local $_;
 	while (<$pipe>) {

@@ -1,3 +1,23 @@
+* Thu Jun 02 2005 Alexey Tourbin <at@altlinux> 0.5.2-alt1
+- fixed various perl-5.8.7 build issues
+- bumped version and released on CPAN
+
+* Fri Apr 15 2005 Alexey Tourbin <at@altlinux> 0.5.1-alt5
+- B/PerlReq.pm: track require_version() calls
+- perl.req: restrict LD_LIBRARY_PATH to /usr/lib64 and /usr/lib
+
+* Wed Apr 06 2005 Alexey Tourbin <at@altlinux> 0.5.1-alt4
+- B/PerlReq.pm: track PerlIO dependencies for "open" and "binmode"
+- perl.prov: allow more opcodes for Safe->reval
+
+* Wed Mar 16 2005 Alexey Tourbin <at@altlinux> 0.5.1-alt3
+- rpm-build-perl.spec: use the same /usr/lib/rpm directory on x86_64
+- perl.prov: decrease verbosity when processing *.al files
+- macros.d/perl5: preserve timestamps when making test
+
+* Thu Dec 23 2004 Alexey Tourbin <at@altlinux> 0.5.1-alt2
+- perl.req: explode() was not imported
+
 * Wed Dec 22 2004 Alexey Tourbin <at@altlinux> 0.5.1-alt1
 - released on CPAN (see http://search.cpan.org/dist/rpm-build-perl/)
 - perl.prov: workaround perl bug #32967

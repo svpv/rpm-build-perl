@@ -1,2 +1,1 @@
-copy: *.patch
 tar.gz: . name=rpm-build-perl-@version@

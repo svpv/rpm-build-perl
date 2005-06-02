@@ -19,7 +19,7 @@ use strict;
 use B qw(class begin_av init_av main_cv main_root OPf_KIDS walksymtable);
 use PerlReq::Utils qw(mod2path path2mod path2dep verf verf_perl sv_version);
 
-our $VERSION = "0.5.1";
+our $VERSION = "0.5.2";
 
 our ($CurCV, $CurEval, $CurLine, $CurDepth);
 our ($Strict, $Relaxed, $Verbose, $Debug);
@@ -155,12 +155,17 @@ sub grok_req ($) {
 	if ($m eq "base") {
 		foreach my $m (@args) {
 			my $f = mod2path($m);
-			Requires($f, undef)
-				if grep { -f "$_/$f" } @INC;
+			foreach (@INC) {
+				if (-f "$_/$f") {
+					Requires($f, undef);
+					last;
+				}
+			}
 		}
+	} elsif ($m eq "autouse") {
+		my $f = mod2path($args[0]);
+		Requires($f, undef);
 	}
-	Requires(mod2path($args[$0]), undef)
-		if $m eq "autouse";
 }
 
 sub grok_perlio ($) {
@@ -188,22 +193,6 @@ sub grok_perlio ($) {
 	}
 }
 
-# TODO
-sub grok_exporter ($) {
-	my $op = shift;
-	my $meth_sv = const_sv($op); return unless $meth_sv->can("PV");
-	my $meth = $meth_sv->PV; return unless $meth eq "require_version" or $meth eq "VERSION";
-	$op = $op->next; return unless $$op and $op->name eq "entersub";
-	$op = $op->first; return unless $$op and $op->name eq "pushmark";
-	$op = $op->sibling; return unless $$op and $op->name eq "const";
-	my $pkg_sv = const_sv($op); return unless $pkg_sv->can("PV");
-	my $pkg = $pkg_sv->PV;
-	$op = $op->sibling; return unless $$op and $op->name eq "const";
-	my $ver_sv = const_sv($op); return unless $ver_sv->can("NV");
-	my $ver = $ver_sv->NV; return unless $ver;
-	Requires(mod2path($pkg), $ver);
-}
-
 sub grok_optree ($;$);
 sub grok_optree ($;$) {
 	my ($op, $level) = (@_, 1);
@@ -219,8 +208,6 @@ sub grok_optree ($;$) {
 	}
 	grok_req($op) if $op->name eq "require" or $op->name eq "dofile";
 	grok_perlio($op) if $op->name eq "open" or $op->name eq "binmode";
-# TODO
-#	grok_exporter($op) if $op->name eq "method_named";
 	if ($op->flags & OPf_KIDS) {
 		for (my $kid = $op->first; $$kid; $kid = $kid->sibling) {
 			grok_optree($kid, $level + 1);
@@ -293,7 +280,7 @@ sub compile {
 		grok_blocks();
 		grok_main();
 		grok_subs() if not $Relaxed;
-	}
+	};
 }
 
 END {

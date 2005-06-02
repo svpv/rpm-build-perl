@@ -1,4 +1,4 @@
-rpm-build-perl version 0.5.1
+rpm-build-perl version 0.5.2
 
 B::PerlReq - Perl compiler backend to extract Perl dependencies
 perl.req - list requirements for Perl scripts and libraries

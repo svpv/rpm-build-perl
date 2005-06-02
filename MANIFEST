@@ -9,7 +9,6 @@ lib/B/PerlReq.pm
 lib/PerlReq/Utils.pm
 perl.prov
 perl.req
-perl5-alt-base_pm-syntax-hack.patch
 perl5-alt-rpm-macros
 rpm-build-perl.spec
 t/01-B-PerlReq.t
