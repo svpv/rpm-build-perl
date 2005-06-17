@@ -100,9 +100,21 @@ cmp_ok "$d\n$d2", "eq", grok qq(require $m; *x = sub { require $m2; };);
 cmp_ok "$d\n$d2", "eq", grok qq(require $m; my \$x = sub { require $m2; };);
 
 cmp_ok "perl(PerlIO.pm)\nperl(PerlIO/scalar.pm)", "eq", grok q(open FH, "<", \$ref);
-cmp_ok "perl(PerlIO.pm)\nperl(PerlIO/scalar.pm)", "eq", grok q(open my $fh, "<", \my $ref);
+cmp_ok "perl(PerlIO.pm)\nperl(PerlIO/scalar.pm)", "eq", grok q(open FH, "+<", \my $ref);
+cmp_ok "perl(PerlIO.pm)\nperl(PerlIO/scalar.pm)", "eq", grok q(open my $fh, "<", \$ref);
+cmp_ok "perl(PerlIO.pm)\nperl(PerlIO/scalar.pm)", "eq", grok q(open my $fh, "+>", \my $ref);
+cmp_ok "perl(PerlIO.pm)\nperl(PerlIO/scalar.pm)", "eq", grok q(open my $fh, ">>", \my $ref);
+cmp_ok "perl(PerlIO.pm)\nperl(PerlIO/encoding.pm)\nperl(Encode.pm)", "eq", grok q(open FH, "<:encoding(cp1251)", $0); # Byte
+cmp_ok "perl(PerlIO.pm)\nperl(PerlIO/encoding.pm)\nperl(Encode.pm)", "eq", grok q(binmode STDOUT, ":encoding(cp949)"); # KR
+cmp_ok "perl(PerlIO.pm)\nperl(PerlIO/encoding.pm)\nperl(Encode.pm)", "eq", grok q(open my $fh,">encoding(euc-jp)",$file); # JP
+cmp_ok "perl(PerlIO.pm)\nperl(PerlIO/encoding.pm)\nperl(Encode.pm)", "eq", grok q(open $fh,"<encoding(US-ASCII)",$file);
+cmp_ok "perl(PerlIO.pm)\nperl(PerlIO/via.pm)", "eq", grok q(open $fh,"<via(PerlIO::via::QuotedPrint)", $tmp);
+cmp_ok "perl(PerlIO.pm)\nperl(PerlIO/via.pm)", "eq", grok q(open $fh,">via(PerlIO::via::QuotedPrint)", $tmp);
+cmp_ok "", "eq", grok q(open FH, "<:encoding(cp1251)");
+cmp_ok "", "eq", grok q(open FH, ">:encoding(cp1251)");
 
-cmp_ok "perl(PerlIO.pm)\nperl(PerlIO/encoding.pm)\nperl(Encode.pm)", "eq", grok q(open FH, "<:encoding(cp1251)", $0);
-cmp_ok "perl(PerlIO.pm)\nperl(PerlIO/encoding.pm)\nperl(Encode.pm)", "eq", grok q(binmode STDOUT, ":encoding(cp1251)");
+cmp_ok "perl(AnyDBM_File.pm)",	"eq", grok q(dbmopen %db, "db.$$", 0600);
+cmp_ok "perl(attributes.pm)",	"eq", grok q(my $x : shared = 1);
+cmp_ok "perl(File/Glob.pm)",	"eq", grok q(<?>);
 
 #END { $? = 0; }

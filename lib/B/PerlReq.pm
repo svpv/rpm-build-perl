@@ -66,7 +66,7 @@ sub RequiresPerl ($) {
 	print "$dep\n";
 }
 
-sub Requires ($$) {
+sub Requires ($;$) {
 	my ($f, $v) = @_;
 	my $dep = path2dep($f) . ($v ? " >= " . verf($v) : "");
 	my $msg = "$dep at line $CurLine (depth $CurDepth)";
@@ -157,39 +157,37 @@ sub grok_req ($) {
 			my $f = mod2path($m);
 			foreach (@INC) {
 				if (-f "$_/$f") {
-					Requires($f, undef);
+					Requires($f);
 					last;
 				}
 			}
 		}
 	} elsif ($m eq "autouse") {
 		my $f = mod2path($args[0]);
-		Requires($f, undef);
+		Requires($f);
 	}
 }
 
 sub grok_perlio ($) {
 	my $op = shift;
 	my $opname = $op->name;
-	$op = $op->first; return unless $$op;
-	$op = $op->sibling; return unless $$op; 
+	$op = $op->first; return unless $$op;		# pushmark
+	$op = $op->sibling; return unless $$op;		# gv[*FH] -- arg1
 	$op = $op->sibling; return unless $$op and $op->name eq "const";
 	my $sv = const_sv($op); return unless $sv->can("PV");
-	my @layers = split /:/, $sv->PV;
+	my $arg2 = $sv->PV; $arg2 =~ s/\s//g;
 	if ($opname eq "open") {
-		my $mode = shift @layers;
-		return unless $mode =~ /[<>]/;
+		return unless $arg2 =~ s/^[+]?[<>]+//;	# validate arg2
+		$op = $op->sibling; return unless $$op;	# arg3 required
+		if ($op->name eq "srefgen") {		# check arg3
+			Requires("PerlIO.pm");
+			Requires("PerlIO/scalar.pm");
+		}
 	}
-	if (grep /^encoding[(]/ => @layers) {
-		Requires("PerlIO.pm", undef);
-		Requires("PerlIO/encoding.pm", undef);
-		Requires("Encode.pm", undef);
-	}
-	if ($opname eq "open") {
-		$op = $op->sibling;
-		return unless $$op and $op->name eq "srefgen";
-		Requires("PerlIO.pm", undef);
-		Requires("PerlIO/scalar.pm", undef);
+	while ($arg2 =~ s/\b(\w+)[(](\S+)[)]//g) {
+		Requires("PerlIO.pm");
+		Requires("PerlIO/$1.pm");
+		Requires("Encode.pm") if $1 eq "encoding";
 	}
 }
 
@@ -208,6 +206,7 @@ sub grok_optree ($;$) {
 	}
 	grok_req($op) if $op->name eq "require" or $op->name eq "dofile";
 	grok_perlio($op) if $op->name eq "open" or $op->name eq "binmode";
+	Requires("AnyDBM_File.pm") if $op->name eq "dbmopen";
 	if ($op->flags & OPf_KIDS) {
 		for (my $kid = $op->first; $$kid; $kid = $kid->sibling) {
 			grok_optree($kid, $level + 1);

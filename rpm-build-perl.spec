@@ -1,6 +1,6 @@
 Name: rpm-build-perl
 Version: 0.5.2
-Release: alt1
+Release: alt2
 
 Summary: RPM helper scripts to calculate Perl dependencies
 License: GPL
@@ -18,7 +18,7 @@ Requires: perl(B.pm) perl(O.pm) perl(Safe.pm)
 Conflicts: rpm-build <= 4.0.4-alt24
 Conflicts: perl-devel <= 1:5.8.1-alt4
 
-# Automatically added by buildreq on Thu Jun 02 2005
+# Automatically added by buildreq on Fri Jun 17 2005
 BuildRequires: perl-devel
 
 %description
@@ -62,6 +62,12 @@ base_pm=`%__perl -Mbase -le 'print $INC{"base.pm"}'`
 %config	%_sysconfdir/rpm/macros.d/perl5
 
 %changelog
+* Fri Jun 17 2005 Alexey Tourbin <at@altlinux.ru> 0.5.2-alt2
+- B/PerlReq.pm: enhanced PerlIO dependency tracking
+- B/Perlreq.pm: dbmopen() requires AnyDBM_File.pm
+- macros.d/perl5: export XSUBPP_STATIC_XS=1 -- this will make
+  some XS functions static (experimental, perl-5.8.7-alt2)
+
 * Thu Jun 02 2005 Alexey Tourbin <at@altlinux.ru> 0.5.2-alt1
 - fixed various perl-5.8.7 build issues
 - bumped version and released on CPAN

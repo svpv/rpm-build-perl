@@ -54,6 +54,7 @@ _perl_vendor_check_dso() { \
 	rm -f ldtest.c ./a.out \
 } \
 perl_vendor_build() { \
+		export XSUBPP_STATIC_XS=${XSUBPP_STATIC_XS:-1} \
 		_perl_vendor_fixin \
 	if [ -f Build.PL ]; then \
 		_perl_vendor_MB_build "$@" \
@@ -77,7 +78,8 @@ _perl_vendor_MM_install() { \
 		INSTALLMAN1DIR=%buildroot%perl_vendor_man1dir \\\
 		INSTALLMAN3DIR=%buildroot%perl_vendor_man3dir \\\
  		pure_install "$@" </dev/null \
-	if %__grep -Fqs 'perl(' .perl.req; then %__cat .perl.req >>%buildroot/.perl.req; fi \
+	if %__grep -F 'perl(' .perl.req >&2; then \
+	   %__grep -F 'perl(' .perl.req >>%buildroot/.perl.req; fi \
 } \
 _perl_vendor_check_buildroot() { \
 	: prompting for files that contain /usr/local \
