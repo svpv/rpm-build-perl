@@ -12,17 +12,11 @@
 #	and micro hacks.
 
 package B::PerlReq;
+our $VERSION = "0.6.0";
 
 use 5.006;
 use strict;
-
-use B qw(class begin_av init_av main_cv main_root OPf_KIDS walksymtable);
-use PerlReq::Utils qw(mod2path path2mod path2dep verf verf_perl sv_version);
-
-our $VERSION = "0.5.2";
-
-our ($CurCV, $CurEval, $CurLine, $CurDepth);
-our ($Strict, $Relaxed, $Verbose, $Debug);
+use PerlReq::Utils qw(mod2path path2dep verf verf_perl sv_version);
 
 our @Skip = (
 	qr(^Makefile\b),
@@ -41,12 +35,12 @@ our @Skip = (
 	qr(\bWin32|Win32\b),
 # most common
 	qr(^Carp\.pm$),
-	qr(^DynaLoader\.pm$),
 	qr(^Exporter\.pm$),
 	qr(^strict\.pm$),
 	qr(^vars\.pm$),
 );
 
+our $CurCV;
 sub const_sv ($) {
 	my $op = shift;
 	my $sv = $op->sv;
@@ -54,10 +48,18 @@ sub const_sv ($) {
 	return $sv;
 }
 
+our $CurLevel = 0;
+our $CurEval;
+our $CurLine;
+our $CurSub;
+our $CurOpname;
+
+our ($Strict, $Relaxed, $Verbose, $Debug);
+
 sub RequiresPerl ($) {
 	my $v = shift;
 	my $dep = "perl-base >= " . verf_perl($v);
-	my $msg = "$dep at line $CurLine (depth $CurDepth)";
+	my $msg = "$dep at line $CurLine (depth $CurLevel)";
 	if (not $Strict and $v < 5.006) {
 		print STDERR "# $msg old perl SKIP\n" if $Verbose;
 		return;
@@ -66,106 +68,50 @@ sub RequiresPerl ($) {
 	print "$dep\n";
 }
 
+# XXX prevDepF is a hack to please t/01-B-PerlReq.t
+my $prevDepF;
+
 sub Requires ($;$) {
 	my ($f, $v) = @_;
+	if ($prevDepF and $prevDepF ne $f) {
+		print path2dep($prevDepF) . "\n";
+	}
+	undef $prevDepF;
 	my $dep = path2dep($f) . ($v ? " >= " . verf($v) : "");
-	my $msg = "$dep at line $CurLine (depth $CurDepth)";
+	my $msg = "$dep at line $CurLine (depth $CurLevel)";
 	if ($f !~ m#^\w+(?:[/-]\w+)*[.]p[lmh]$#) { # bits/ioctl-types.ph
 		print STDERR "# $msg invalid SKIP\n";
+		return;
+	}
+	if ($CurSub eq "BEGIN" and not $INC{$f} and $CurOpname ne "autouse") {
+		print STDERR "# $msg not loaded at BEGIN SKIP\n";
 		return;
 	}
 	if (not $Strict and grep { $f =~ $_ } @Skip) {
 		print STDERR "# $msg builtin SKIP\n" if $Verbose;
 		return;
 	}
+	if ($CurSub eq "BEGIN" and $INC{$f}) {
+		goto req;
+	}
 	if (not $Strict and $CurEval) {
 		print STDERR "# $msg inside eval SKIP\n";
 		return;
 	}
-	if ($Relaxed and $CurDepth > 4) {
+	if ($Relaxed and $CurLevel > 4) {
 		print STDERR "# $msg deep SKIP\n";
 		return;
 	}
-	print STDERR "# $msg REQ\n" if $Verbose;
-	print "$dep\n";
-}
-
-sub grok_args ($$$) { # big bucks
-	my ($OP, $module, $method) = @_;
-	for (1..4) {
-		my $op = $OP;
-		$op = $op->next  if $$op and $op->name eq "nextstate";
-		$op = $op->first if $$op and $op->name eq "lineseq";
-		$op = $op->next  if $$op and $op->name eq "nextstate";
-		next unless $$op and $op->name eq "pushmark";
-		$op = $op->next;
-		next unless $$op and $op->name eq "const";
-		my $sv = const_sv($op);
-		next unless $sv->can("PV") and $sv->PV eq $module;
-		$op = $op->sibling;
-		my @ops;
-		while ($$op and $op->name eq "const") {
-			push @ops, $op;
-			$op = $op->sibling;
-		}
-		next unless $$op and $op->name eq "method_named";
-		next unless const_sv($op)->PV eq $method;
-		return wantarray ? @ops : $ops[0];
-	} continue {
-		$OP = $OP->sibling;
-		return unless $$OP;
-	}
-	return;
-}
-
-sub grok_version ($$) {
-	my ($op, $module) = @_;
-	$op =	grok_args($op, $module, "VERSION") ||
-		grok_args($op, $module, "require_version") || return;
-	return sv_version(const_sv($op));
-}
-
-sub grok_import ($$) {
-	my ($op, $module) = @_;
-	my @ops = grok_args($op, $module, "import");
-	my @words;
-	for my $op (@ops) {
-		my $sv = const_sv($op);
-		push @words, $sv->PV if $sv->can("PV");
-	}
-	return @words;
-}
-
-sub grok_req ($) {
-	my $op = shift;
-	return unless $op->first->name eq "const";
-	my $sv = const_sv($op->first);
-	my $v = sv_version($sv);
+req:	print STDERR "# $msg REQ\n" if $Verbose;
 	if ($v) {
-		RequiresPerl($v);
-		return;
+		print "$dep\n";
+	} else {
+		$prevDepF = $f;
 	}
-	my $f = $sv->PV;
-	my $m = path2mod($f);
-	$v = grok_version($op, $m);
-	Requires($f, $v);
-	return if $Relaxed;
-	my @args = grok_import($op, $m);
-	return unless @args;
-	if ($m eq "base") {
-		foreach my $m (@args) {
-			my $f = mod2path($m);
-			foreach (@INC) {
-				if (-f "$_/$f") {
-					Requires($f);
-					last;
-				}
-			}
-		}
-	} elsif ($m eq "autouse") {
-		my $f = mod2path($args[0]);
-		Requires($f);
-	}
+}
+sub finalize {
+	print path2dep($prevDepF) . "\n"
+		if $prevDepF;
 }
 
 sub grok_perlio ($) {
@@ -175,6 +121,7 @@ sub grok_perlio ($) {
 	$op = $op->sibling; return unless $$op;		# gv[*FH] -- arg1
 	$op = $op->sibling; return unless $$op and $op->name eq "const";
 	my $sv = const_sv($op); return unless $sv->can("PV");
+	local $CurOpname = $opname;
 	my $arg2 = $sv->PV; $arg2 =~ s/\s//g;
 	if ($opname eq "open") {
 		return unless $arg2 =~ s/^[+]?[<>]+//;	# validate arg2
@@ -191,72 +138,180 @@ sub grok_perlio ($) {
 	}
 }
 
-sub grok_optree ($;$);
-sub grok_optree ($;$) {
-	my ($op, $level) = (@_, 1);
-	$CurDepth = $level;
-	$CurLine = $op->line if $op->can("line");
-	if ($CurEval and $level <= $CurEval) {
-		print STDERR "# exit eval at line $CurLine\n" if $Debug;
-		undef $CurEval;
-	}
-	if (not $CurEval and $op->name eq "leavetry") {
-		$CurEval = $level;
-		print STDERR "# enter eval at line $CurLine\n" if $Debug;
-	}
-	grok_req($op) if $op->name eq "require" or $op->name eq "dofile";
-	grok_perlio($op) if $op->name eq "open" or $op->name eq "binmode";
-	Requires("AnyDBM_File.pm") if $op->name eq "dbmopen";
-	if ($op->flags & OPf_KIDS) {
-		for (my $kid = $op->first; $$kid; $kid = $kid->sibling) {
-			grok_optree($kid, $level + 1);
+sub grok_require ($) {
+	my $op = shift;
+	return unless $op->first->name eq "const";
+	my $sv = const_sv($op->first);
+	my $v = sv_version($sv);
+	defined($v)  
+		? RequiresPerl($v)
+		: Requires($sv->PV)
+		;
+}
+
+sub grok_import ($$@) {
+	my ($class, undef, @args) = @_;
+	local $CurOpname = $class;
+	if ($class eq "base") {
+		foreach my $m (@args) {
+			my $f = mod2path($m);
+			# XXX Requires($f) if $INC{$f};
+			foreach (@INC) {
+				if (-f "$_/$f") {
+					Requires($f);
+					last;
+				}
+			}
 		}
 	}
-	if (class($op) eq "PMOP") {
-		my $root = $op->pmreplroot;
-		grok_optree($root, $level + 1)
-			if ref($root) and $root->isa("B::OP");
+	elsif ($class eq "autouse") {
+		my $f = mod2path($args[0]);
+		Requires($f);
+	}
+}
+
+sub grok_version ($$@) {
+	my ($class, undef, $version) = @_;
+	my $f = mod2path($class);
+	local $CurOpname = "version";
+	Requires($f, $version);
+}
+
+our %methods = (
+	'import' => \&grok_import,
+	'VERSION' => \&grok_version,
+	'require_version' => \&grok_version,
+);
+
+sub grok_method ($) { # class->method(args)
+	my $OP = my $op = shift;
+	my $method = const_sv($op)->PV;
+	return unless $methods{$method};
+	$op = $op->next; return unless $op->name eq "entersub";
+	$op = $op->first; return unless $op->name eq "pushmark";
+	$op = $op->sibling; return unless $op->name eq "const";
+	my $sv = const_sv($op); return unless $sv->can("PV");
+	my $class = $sv->PV;
+	my @args;
+	$op = $op->sibling;
+	while ($$op and $op->name eq "const") {
+		my $sv = const_sv($op);
+		my $arg = sv_version($sv);
+		unless (defined $arg) {
+			last unless $sv->can("PV");
+			$arg = $sv->PV;
+		}
+		push @args, $arg;
+		$op = $op->sibling;
+	}
+	return unless $$OP == $$op;
+	$methods{$method}->($class, $method, @args);
+}
+
+our %ops = (
+	'require'	=> \&grok_require,
+	'dofile'	=> \&grok_require,
+	'method_named'	=> \&grok_method,
+	'open'		=> \&grok_perlio,
+	'binmode'	=> \&grok_perlio,
+	'dbmopen'	=> sub { Requires("AnyDBM_File.pm") },
+);
+
+sub grok_root ($);
+sub grok_root ($) {
+	my $op = shift;
+	my $ref = ref($op);
+	return unless $ref and $$op;
+# caller is OP, gvsv is PADOP
+#	return if $ref eq "B::PADOP" or $ref eq "B::OP";
+	if ($ref eq "B::COP") {
+		$CurLine = $op->line;
+		return;
+	}
+	my $name = $op->name;
+	local $CurLevel = $CurLevel + 1;
+	local $CurEval = $CurLevel if $name eq "leavetry";
+	if ($ops{$name}) {
+		local $CurOpname = $name;
+		$ops{$name}->($op);
+	}
+	grok_root($op->pmreplroot) if $ref eq "B::PMOP";
+	use B qw(OPf_KIDS);
+	if ($op->flags & OPf_KIDS) {
+		for ($op = $op->first; $$op; $op = $op->sibling) {
+			grok_root($op);
+		}
 	}
 }
 
 sub grok_cv ($);
+
+sub grok_av ($$) {
+	my ($name, $av) = @_;
+	return if ref($av) ne "B::AV";
+	local $CurSub = $name;
+	grok_cv($_) for $av->ARRAY;
+}
+
+sub grok_pad ($) {
+	my $pad = shift;
+	return unless $pad->can("ARRAY");
+	grok_av ANON => $pad->ARRAY;
+}
+
 sub grok_cv ($) {
-	my $cv = $CurCV = shift;
-	return if $cv->FILE ne $0;
-	grok_optree($cv->ROOT) if ${$cv->ROOT};
-	return unless $cv->PADLIST->can("ARRAY");
-	for my $anon ($cv->PADLIST->ARRAY->ARRAY) {
-		next if class($anon) ne "CV";
-		grok_cv($anon);
-	}
-}
-
-sub B::GV::grok_gv ($) {
-	my $gv = shift;
-	my $cv = $gv->CV;
-	$CurLine = $gv->LINE;
-	grok_cv($cv) if $$cv;
-}
-
-sub grok_subs () {
-	walksymtable(\%::, 'grok_gv', sub { 1 }, undef);
+	my $cv = shift;
+	return if ref($cv) ne "B::CV";
+	return if $cv->FILE and $cv->FILE ne $0;
+	local $CurCV = $cv;
+	grok_root($cv->ROOT);
+	grok_pad($cv->PADLIST);
 }
 
 sub grok_blocks () {
-	for my $block (begin_av, init_av) {
-		next unless $block->isa("B::AV");
-		grok_cv($_) foreach $block->ARRAY;
-	}
+	use B qw(begin_av init_av);
+	grok_av "BEGIN" => begin_av;
+	grok_av "INIT" => init_av;
 }
 
 sub grok_main () {
-	my $cv = $CurCV = main_cv;
-	grok_optree(main_root) if ${main_root()};
-	return unless $cv->PADLIST->can("ARRAY");
-	for my $anon ($cv->PADLIST->ARRAY->ARRAY) {
-		next if class($anon) ne "CV";
-		grok_cv($anon);
+	use B qw(main_cv main_root);
+	local $CurSub = "MAIN";
+	grok_cv(main_cv);
+	local $CurCV = main_cv;
+	grok_root(main_root);
+}
+
+sub grok_gv ($) {
+	my $gv = shift;
+	my $cv = $gv->CV;
+	return unless $$cv;
+	return if $cv->XSUB;
+	local $CurSub = $gv->SAFENAME;
+	$CurLine = $gv->LINE;
+	grok_cv($cv);
+}
+
+sub grok_stash { # similar to B::walksymtable
+	my ($symref, $prefix) = @_;
+	while (my ($sym) = each %$symref) {
+		no strict 'refs';
+		my $fullname = "*main::". $prefix . $sym;
+		if ($sym =~ /::\z/) {
+			$sym = $prefix . $sym;
+			grok_stash(\%$fullname, $sym)
+				if $sym ne "main::" && $sym ne "<none>::";
+		}
+		else {
+			use B qw(svref_2object);
+			grok_gv(svref_2object(\*$fullname))
+				if *$fullname{CODE};
+		}
 	}
+}
+
+sub grok_subs () {
+	grok_stash \%::, '';
 }
 
 sub compile {
@@ -279,6 +334,7 @@ sub compile {
 		grok_blocks();
 		grok_main();
 		grok_subs() if not $Relaxed;
+		finalize();
 	};
 }
 
@@ -338,13 +394,16 @@ Written by Alexey Tourbin <at@altlinux.org>.
 
 =head1	COPYING
 
-Copyright (c) 2004 Alexey Tourbin, ALT Linux Team.
+Copyright (c) 2004, 2006 Alexey Tourbin, ALT Linux Team.
 
-This is free software; you can redistribute it and/or modify it under
-the terms of the GNU Library General Public License as published by the
-Free Software Foundation; either version 2 of the License, or (at your
-option) any later version.
+This is free software; you can redistribute it and/or modify it under the terms
+of the GNU General Public License as published by the Free Software Foundation;
+either version 2 of the License, or (at your option) any later version.
 
 =head1	SEE ALSO
 
-L<B>, L<B::Deparse>, L<PerlReq::Utils>, L<perl.req>
+L<B>,
+L<B::Deparse>,
+L<Module::Info>,
+L<Module::ScanDeps>,
+L<perl.req>

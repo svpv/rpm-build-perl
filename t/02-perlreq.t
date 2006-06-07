@@ -41,7 +41,7 @@ Requires "$lib/attributes.pm"	=> "";
 Requires "$lib/AutoLoader.pm"	=> "perl-base >= 1:5.6.1";
 Requires "$lib/constant.pm"	=> "perl(warnings/register.pm) perl-base >= 1:5.6.0";
 Requires "$lib/Exporter.pm"	=> "perl(Exporter/Heavy.pm) perl-base >= 1:5.6.0";
-Requires "$lib/File/Basename.pm" => "perl(warnings.pm) perl-base >= 1:5.6.0";
+Requires "$lib/File/Basename.pm" => "perl(re.pm) perl(warnings.pm) perl-base >= 1:5.6.0";
 Requires "$lib/Getopt/Long.pm"	=> "perl(constant.pm)";
 Requires "$arch/IO/File.pm"	=> "perl(File/Spec.pm) perl(IO/Seekable.pm) perl(SelectSaver.pm) perl(Symbol.pm) perl-base >= 1:5.6.1";
 Requires "$arch/File/Glob.pm"	=> "perl(Text/ParseWords.pm) perl(XSLoader.pm)";

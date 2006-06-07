@@ -1,3 +1,25 @@
+%changelog
+* Wed Jun 07 2006 Alexey Tourbin <at@altlinux> 0.6.0-alt1
+- B/PerlReq.pm:
+  + major internal cleanup
+  + a sketch for event-driven optree analysis blah-blah-blah
+  + changed rules for dependencies found in BEGIN blocks:
+    - never list ones that have not been loaded according to %INC
+    - always list loaded ones (there's no easy way to find out if it's been
+      loaded by another module; I tried @INC hook + DB::DB debugger trap but
+      it didn't work)
+  + two-fold speedup
+- macros.d/perl5:
+  + export PERL_EXTUTILS_AUTOINSTALL=--skip
+  + OTHERLDFLAGS="-lperl -lpthread $EXTRA_LIBS" ("full linkage")
+- removed /usr/lib/rpm/base.pm
+
+* Fri Jun 17 2005 Alexey Tourbin <at@altlinux> 0.5.2-alt2
+- B/PerlReq.pm: enhanced PerlIO dependency tracking
+- B/Perlreq.pm: dbmopen() requires AnyDBM_File.pm
+- macros.d/perl5: export XSUBPP_STATIC_XS=1 -- this will make
+  some XS functions static (experimental, perl-5.8.7-alt2)
+
 * Thu Jun 02 2005 Alexey Tourbin <at@altlinux> 0.5.2-alt1
 - fixed various perl-5.8.7 build issues
 - bumped version and released on CPAN

@@ -1,6 +1,6 @@
 Name: rpm-build-perl
-Version: 0.5.2
-Release: alt2
+Version: 0.6.0
+Release: alt1
 
 Summary: RPM helper scripts to calculate Perl dependencies
 License: GPL
@@ -8,9 +8,6 @@ Group: Development/Other
 
 URL: %CPAN %name
 Source: %name-%version.tar.gz
-
-# for x86_64
-%define _libdir %_prefix/lib
 
 BuildArch: noarch
 Requires: perl(B.pm) perl(O.pm) perl(Safe.pm)
@@ -29,32 +26,21 @@ tags for the package.
 %prep
 %setup -q
 
-# We want a slightly modified version of base.pm (see perl.req for why).
-base_pm=`%__perl -Mbase -le 'print $INC{"base.pm"}'`
-%__cp -av "$base_pm" base.pm
-%__perl -pi.orig -e 's/^(\s+eval\s+"require\s+\$base)(";)$/$1; import \$base$2/' base.pm
-! diff -up base.pm{.orig,}
-
 %build
 %perl_vendor_build
 
 %install
-%perl_vendor_install INSTALLSCRIPT=%_libdir/rpm
-%__mv %buildroot%perl_vendor_privlib/{base,fake}.pm %buildroot%_libdir/rpm
-#__ln_s `relative %perl_vendor_privlib/B %_libdir/rpm/B` %buildroot%_libdir/rpm/B
-#__ln_s `relative %perl_vendor_privlib/PerlReq %_libdir/rpm/PerlReq` %buildroot%_libdir/rpm/PerlReq
+%perl_vendor_install INSTALLSCRIPT=%_rpmlibdir
+mv %buildroot%perl_vendor_privlib/fake.pm %buildroot%_rpmlibdir/
 
-%__mkdir_p %buildroot%_sysconfdir/rpm/macros.d
-%__cp -av perl5-alt-rpm-macros %buildroot%_sysconfdir/rpm/macros.d/perl5
+mkdir -p %buildroot%_sysconfdir/rpm/macros.d
+cp -p perl5-alt-rpm-macros %buildroot%_sysconfdir/rpm/macros.d/perl5
 
 %files
 %doc README.ALT
-%_libdir/rpm/perl.req
-%_libdir/rpm/perl.prov
-%_libdir/rpm/base.pm
-%_libdir/rpm/fake.pm
-#_libdir/rpm/B
-#_libdir/rpm/PerlReq
+%_rpmlibdir/perl.req
+%_rpmlibdir/perl.prov
+%_rpmlibdir/fake.pm
 %dir %perl_vendor_privlib/B
 %perl_vendor_privlib/B/PerlReq.pm
 %dir %perl_vendor_privlib/PerlReq
@@ -62,6 +48,22 @@ base_pm=`%__perl -Mbase -le 'print $INC{"base.pm"}'`
 %config	%_sysconfdir/rpm/macros.d/perl5
 
 %changelog
+* Wed Jun 07 2006 Alexey Tourbin <at@altlinux.ru> 0.6.0-alt1
+- B/PerlReq.pm:
+  + major internal cleanup
+  + a sketch for event-driven optree analysis blah-blah-blah
+  + changed rules for dependencies found in BEGIN blocks:
+    - never list ones that have not been loaded according to %%INC,
+      except for 'use autouse qw(Module)' case
+    - always list loaded ones (there's no easy way to find out if it's been
+      loaded by another module; I tried @INC hook + DB::DB debugger trap but
+      it didn't work)
+  + two-fold speedup
+- macros.d/perl5:
+  + export PERL_EXTUTILS_AUTOINSTALL=--skip
+  + OTHERLDFLAGS="-lperl -lpthread $EXTRA_LIBS" ("full linkage")
+- removed %_rpmlibdir/base.pm
+
 * Fri Jun 17 2005 Alexey Tourbin <at@altlinux.ru> 0.5.2-alt2
 - B/PerlReq.pm: enhanced PerlIO dependency tracking
 - B/Perlreq.pm: dbmopen() requires AnyDBM_File.pm
@@ -173,7 +175,7 @@ base_pm=`%__perl -Mbase -le 'print $INC{"base.pm"}'`
 - perl.req: strip comments in shebang
 
 * Sun Sep 28 2003 Alexey Tourbin <at@altlinux.ru> 0.1-alt4
-- base.pm hacked and placed into %_libdir/rpm in order to avoid
+- base.pm hacked and placed into %_rpmlibdir in order to avoid
   some weird syntax-check problems
 
 * Fri Sep 26 2003 Alexey Tourbin <at@altlinux.ru> 0.1-alt3

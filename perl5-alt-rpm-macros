@@ -37,7 +37,8 @@ _perl_vendor_MM_build() { \
 	: writing Makefile \
 	%__perl Makefile.PL PREFIX=%_prefix INSTALLDIRS=vendor "$@" </dev/null \
 	: running make \
-	%make_build OPTIMIZE="%{!?_enable_debug:%perl_vendor_optflags}%{?_enable_debug:%optflags}%{?_enable_Werror: -Werror}" CP="%__cp -p" \
+	%make_build OPTIMIZE="%{!?_enable_debug:%perl_vendor_optflags}%{?_enable_debug:%optflags}%{?_enable_Werror: -Werror}" CP="%__cp -p" \\\
+		OTHERLDFLAGS="-lperl -lpthread $EXTRA_LIBS" \
 	%{?!_without_test:%{?!_disable_test:: running tests; LD_BIND_NOW=1 PERL_DL_NONLAZY=1 %__make test CP="%__cp -p" %{?_enable_debug:TEST_VERBOSE=1} </dev/null}} \
 } \
 _perl_vendor_fixin() { \
@@ -54,7 +55,8 @@ _perl_vendor_check_dso() { \
 	rm -f ldtest.c ./a.out \
 } \
 perl_vendor_build() { \
-		export XSUBPP_STATIC_XS=${XSUBPP_STATIC_XS:-1} \
+	export PERL_EXTUTILS_AUTOINSTALL="${PERL_EXTUTILS_AUTOINSTALL:---skip}" \
+	export XSUBPP_STATIC_XS=${XSUBPP_STATIC_XS:-1} \
 		_perl_vendor_fixin \
 	if [ -f Build.PL ]; then \
 		_perl_vendor_MB_build "$@" \
