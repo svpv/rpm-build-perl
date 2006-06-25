@@ -5,10 +5,13 @@ use strict;
 
 use PerlReq::Utils qw(argv explode inc mod2path path2dep sv_version verf);
 
-use Getopt::Long qw(GetOptions);
-GetOptions "v|verbose" => \my $Verbose, "d|debug" => \my $Debug or exit(1);
-$Debug ||= $ENV{RPM_SCRIPTS_DEBUG};
-$Verbose ||= $Debug;
+use autouse qw(Pod::Usage pod2usage);
+use Getopt::Long 2.24 qw(GetOptions :config gnu_getopt);
+GetOptions
+	"v|verbose+"	=> \my $Verbose,
+	"h|help"	=> sub { pod2usage("00") }
+		or pod2usage(2);
+$Verbose = 2 if $ENV{RPM_SCRIPTS_DEBUG};
 $| = 1;
 
 # list of provides
@@ -19,14 +22,14 @@ process_file($_) foreach argv();
 
 sub process_file {
 	my $fname = shift;
-	warn "# processing $fname\n" if $Debug;
+	warn "# processing $fname\n" if $Verbose > 1;
 
 	my ($prefix, $basename) = explode($fname);
 	unless ($prefix) {
-		warn "# $fname does not match any prefix\n" if $Debug;
+		warn "# $fname does not match any prefix\n" if $Verbose > 1;
 		return;
 	} else {
-		warn "# $fname has prefix $prefix\n" if $Debug;
+		warn "# $fname has prefix $prefix\n" if $Verbose > 1;
 	}
 
 	if ($fname =~ /\.p[lh]$/) {
@@ -37,7 +40,7 @@ sub process_file {
 		$prov{$basename} ||= undef;
 		warn "# $fname has basename $basename, checking version\n" if $Verbose;
 	} elsif ($basename =~ /\.al$/) {
-		warn "# $fname (autoloaded file SKIP)" if $Debug;
+		warn "# $fname (autoloaded file SKIP)" if $Verbose > 1;
 		return;
 	} else {
 		warn "# $fname has basename $basename (SKIP)\n";
@@ -54,7 +57,7 @@ sub process_file {
 		last if /^__(DATA|END)__\b/;
 		if (/^\s*\{?\s*package\s+($re_pkg)\s*;/) {
 			$cur_pkg = $1;
-			warn "# package $cur_pkg at $fname line $.\n" if $Debug;
+			warn "# package $cur_pkg at $fname line $.\n" if $Verbose > 1;
 		} elsif (/\$($re_pkg)::VERSION\s*\)?\s*=.*\d/) {
 			my $pkg = $1;
 			if (mod2path($pkg) ne $basename) {
@@ -92,7 +95,7 @@ foreach my $k (sort { uc($a) cmp uc($b) } keys %prov) {
 
 sub extract_version {
 	my ($fname, $line, $pkg) = @_;
-	warn "# extracting version at line $.:\n# $line\n" if $Debug;
+	warn "# extracting version at line $.:\n# $line\n" if $Verbose > 1;
 	my $code = "$line\n; \$VERSION";
 	$code =~ s/\$\Q$pkg\::VERSION/\$VERSION/g if $pkg;
 
@@ -126,7 +129,9 @@ perl.prov - list what Perl source files provide
 
 =head1	SYNOPSIS
 
-B<perl.prov> [B<-v>] [B<-d>] [I<file>]...
+B<perl.prov>
+[B<-v>|B<--verbose>]
+[I<FILE>...]
 
 =head1	DESCRIPTION
 
@@ -149,13 +154,7 @@ perl.prov is a counterpart of L<perl.req>.
 
 =item	B<-v>, B<--verbose>
 
-Output extra information about the work being done.
-
-=item	B<-d>, B<--debug>
-
-Enable debugging output (implies --verbose option).  Alternatively,
-RPM_SCRIPTS_DEBUG environment variable can be set to enable debugging
-output.
+Increase verbosity.
 
 =back
 

@@ -5,16 +5,18 @@ use strict;
 use Config qw(%Config);
 use PerlReq::Utils qw(argv inc explode verf mod2dep);
 
-use Getopt::Long qw(GetOptions);
-GetOptions "m|method=s" => \my $Method,
-	"v|verbose" => \my $Verbose, "d|debug" => \my $Debug
-		or exit(1);
-$Debug ||= $ENV{RPM_SCRIPTS_DEBUG};
-$Verbose ||= $Debug;
+use autouse qw(Pod::Usage pod2usage);
+use Getopt::Long 2.24 qw(GetOptions :config gnu_getopt);
+GetOptions
+	"m|method=s"	=> \my $Method,
+	"v|verbose+"	=> \my $Verbose,
+	"h|help"	=> sub { pod2usage("00") }
+		or pod2usage(2);
+$Verbose = 2 if $ENV{RPM_SCRIPTS_DEBUG};
 $Method ||= $ENV{RPM_PERL_REQ_METHOD} || "normal";
 $Method =~ s/\s//g;
 $Method eq "strict" || $Method eq "normal" || $Method eq "relaxed" ||
-	die "$0: strict, normal, relaxed methods supported\n";
+	pod2usage("$0: invalid method $Method");
 $| = 1;
 
 my @Skip = (
@@ -68,7 +70,7 @@ sub process_file {
 		warn "# $fname (builtin SKIP)\n";
 		return;
 	}
-	warn "# processing $fname\n" if $Debug;
+	warn "# processing $fname\n" if $Verbose > 1;
 
 	do_deparse($fname) and return;
 
@@ -169,10 +171,10 @@ sub do_deparse {
 	my $MO = "-MO=PerlReq";
 	$MO .= ",-$Method" if $Method ne "normal";
 	$MO .= ",-verbose" if $Verbose;
-	$MO .= ",-debug" if $Debug;
+	$MO .= ",-debug" if $Verbose > 1;
 
 	push @pipe, @add_arguments, $MO, "--", $fname;
-	warn "# pipe: @pipe\n" if $Debug;
+	warn "# pipe: @pipe\n" if $Verbose > 1;
 
 # do deparse
 	use 5.007_001; # the list form of open() for pipes
@@ -208,7 +210,7 @@ foreach my $k (sort { uc($a) cmp uc($b) } keys %req) {
 
 # auxiliary stuff
 sub count($$) {
-	warn "# @_\n" if $Debug;
+	warn "# @_\n" if $Verbose > 1;
 }
 
 sub isPerl {
@@ -283,11 +285,15 @@ perl.req - list requirements for Perl scripts and libraries
 
 =head1	SYNOPSIS
 
-B<perl.req> [B<-m> I<method>] [B<-v>] [B<-d>] [I<file>]...
+B<perl.req>
+[B<-h>|B<--help>]
+[B<-v>|B<--verbose>]
+[B<-m>|B<--method>=I<strict>|I<normal>|I<relaxed>]
+[I<FILE>...]
 
 =head1	DESCRIPTION
 
-This script calculates prerequisites for each Perl source I<file>
+B<perl.req> calculates prerequisites for each Perl source I<file>
 specified on a command line; alternatively, a list of files is obtained
 from standard input, one file per line.  C<use>, C<require> and C<do>
 statements are processed.  The output of perl.req is suitable for
@@ -296,7 +302,7 @@ automatic dependency tracking (e.g. for RPM packaging).
 For example, F</usr/lib/perl5/File/Temp.pm> requires, in particular,
 C<< perl(Fcntl.pm) >= 1.030 >> (as of perl-5.8.6).
 
-perl.req is basically a wrapper for L<B::PerlReq> Perl compiler backend.
+B<perl.req> is basically a wrapper for L<B::PerlReq> Perl compiler backend.
 
 =head1	OPTIONS
 
@@ -335,13 +341,7 @@ essential dependencies.
 
 =item	B<-v>, B<--verbose>
 
-Output extra information about the work being done.
-
-=item	B<-d>, B<--debug>
-
-Enable debugging output (implies --verbose option).  Alternatively,
-RPM_SCRIPTS_DEBUG environment variable can be set to enable debugging
-output.
+Increase verbosity.
 
 =back
 
