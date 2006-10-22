@@ -1,4 +1,10 @@
-%changelog
+* Mon Oct 23 2006 Alexey Tourbin <at@altlinux> 0.6.1-alt1
+- imported sources into git repo, which is available at
+  git://git.altlinux.org/people/at/packages/rpm-build-perl.git
+- fixed test suite for recent perl-5.8.x snapshot
+- perl.{req,prov}: added pod2usage; removed --debug option, use -vv
+- perl.prov: implemented limited support for `$VERSION = $Other::VERSION'
+
 * Wed Jun 07 2006 Alexey Tourbin <at@altlinux> 0.6.0-alt1
 - B/PerlReq.pm:
   + major internal cleanup

@@ -1,5 +1,5 @@
 Name: rpm-build-perl
-Version: 0.6.0
+Version: 0.6.1
 Release: alt1
 
 Summary: RPM helper scripts to calculate Perl dependencies
@@ -48,6 +48,13 @@ cp -p perl5-alt-rpm-macros %buildroot/etc/rpm/macros.d/perl5
 %config /etc/rpm/macros.d/perl5
 
 %changelog
+* Mon Oct 23 2006 Alexey Tourbin <at@altlinux.ru> 0.6.1-alt1
+- imported sources into git repo, which is available at
+  git://git.altlinux.org/people/at/packages/rpm-build-perl.git
+- fixed test suite for recent perl-5.8.x snapshot
+- perl.{req,prov}: added pod2usage; removed --debug option, use -vv
+- perl.prov: implemented limited support for `$VERSION = $Other::VERSION'
+
 * Wed Jun 07 2006 Alexey Tourbin <at@altlinux.ru> 0.6.0-alt1
 - B/PerlReq.pm:
   + major internal cleanup
