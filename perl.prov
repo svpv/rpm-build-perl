@@ -3,7 +3,7 @@
 use 5.006;
 use strict;
 
-use PerlReq::Utils qw(argv explode inc mod2path path2dep sv_version verf);
+use PerlReq::Utils qw(argv explode inc mod2path path2mod path2dep sv_version verf);
 
 use autouse qw(Pod::Usage pod2usage);
 use Getopt::Long 2.24 qw(GetOptions :config gnu_getopt);
@@ -33,11 +33,11 @@ sub process_file {
 	}
 
 	if ($fname =~ /\.p[lh]$/) {
-		$prov{$basename} ||= undef;
+		$prov{$basename}{prov} = 1;
 		warn "# $fname has basename $basename\n" if $Verbose;
 		return;
 	} elsif ($basename =~ /\.pm$/) {
-		$prov{$basename} ||= undef;
+		$prov{$basename}{prov} = 1;
 		warn "# $fname has basename $basename, checking version\n" if $Verbose;
 	} elsif ($basename =~ /\.al$/) {
 		warn "# $fname (autoloaded file SKIP)" if $Verbose > 1;
@@ -55,40 +55,60 @@ sub process_file {
 		next if /^\s*#/;
 		next if /^=\w/ .. (/^=cut/ or eof);
 		last if /^__(DATA|END)__\b/;
+		s/\s+#\s.*//; # strip comments
 		if (/^\s*\{?\s*package\s+($re_pkg)\s*;/) {
 			$cur_pkg = $1;
 			warn "# package $cur_pkg at $fname line $.\n" if $Verbose > 1;
-		} elsif (/\$($re_pkg)::VERSION\s*\)?\s*=.*\d/) {
-			my $pkg = $1;
-			if (mod2path($pkg) ne $basename) {
-				warn "# saw \$$pkg\::VERSION at $fname line $. (SKIP)\n";
-				next;
-			}
+			next;
+		}
+		/\$(?:($re_pkg)::)?VERSION\s*\)?\s*=/ or next;
+		# it's a version assignemnt
+		my $pkg = $1;
+		my $val = $';
+
+		if ($pkg and mod2path($pkg) ne $basename) {
+			warn "# saw \$$pkg\::VERSION at $fname line $. (SKIP)\n";
+			next;
+		}
+		if (not $pkg and mod2path($cur_pkg) ne $basename) {
+			warn "# saw \$VERSION in package $cur_pkg at $fname line $. (SKIP)\n";
+			next;
+		}
+
+		if ($val =~ /\b\d|\d\./) {
+			# there's a version number
 			my $v = extract_version($fname, $_, $pkg);
-			if ($v) {
-				$prov{$basename}{$v} = undef;
-				last;
-			}
-		} elsif (/\$VERSION\s*\)?\s*=.*\d/) {
-			if (mod2path($cur_pkg) ne $basename) {
-				warn "# saw \$VERSION in package $cur_pkg at $fname line $. (SKIP)\n";
-				next;
-			}
-			my $v = extract_version($fname, $_);
-			if ($v) {
-				$prov{$basename}{$v} = undef;
-				last;
-			}
+			$prov{$basename}{ver}{$v} = 1 if $v;
+			last;
+		}
+		elsif ($val =~ /\$($re_pkg)::VERSION\s*;/) {
+			# holy Jesus! they assign the version from another package
+			warn "# saw \$VERSION reference to \$$1::VERSION at $fname line $.\n" if $Verbose;
+			my $basename2 = mod2path($1);
+			$prov{$basename}{ver} = $prov{$basename2}{ver} ||= {};
+			$prov{$basename}{vref} = $basename2;
+			last;
+		}
+		else {
+			warn "# VERSION assignment not recognized at $fname line $. (SKIP)\n";
+			warn "# $_\n";
 		}
 	}
 }
 
 # end
 foreach my $k (sort { uc($a) cmp uc($b) } keys %prov) {
-	my $vv = $prov{$k};
-	if ($vv) {
-		print path2dep($k) . " = $_\n" foreach sort keys %$vv;
-	} else {
+	next unless $prov{$k}{prov};
+	my @v = sort keys %{$prov{$k}{ver}||{}};
+	if (not @v and my $k2 = $prov{$k}{vref}) {
+		my $m1 = path2mod($k);
+		my $m2 = path2mod($k2);
+		warn "# unresolved reference from \$$m1\::VERSION to \$$m2\::VERSION\n";
+	}
+	if (@v) {
+		print path2dep($k) . " = $_\n" for @v;
+	}
+	else {
 		print path2dep($k) . "\n";
 	}
 }
