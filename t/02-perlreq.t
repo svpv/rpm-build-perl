@@ -46,5 +46,4 @@ Requires "$lib/Getopt/Long.pm"	=> "perl(constant.pm)";
 Requires "$arch/IO/File.pm"	=> "perl(File/Spec.pm) perl(IO/Seekable.pm) perl(SelectSaver.pm) perl(Symbol.pm) perl-base >= 1:5.6.1";
 Requires "$arch/File/Glob.pm"	=> "perl(Text/ParseWords.pm) perl(XSLoader.pm)";
 Requires "$arch/Socket.pm"	=> "perl(warnings/register.pm) perl(XSLoader.pm)";
-Requires "$arch/POSIX.pm"	=> "perl(AutoLoader.pm) perl(XSLoader.pm)";
 
