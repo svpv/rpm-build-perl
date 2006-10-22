@@ -15,7 +15,7 @@ Requires: perl(B.pm) perl(O.pm) perl(Safe.pm)
 Conflicts: rpm-build <= 4.0.4-alt24
 Conflicts: perl-devel <= 1:5.8.1-alt4
 
-# Automatically added by buildreq on Fri Jun 17 2005
+# Automatically added by buildreq on Mon Oct 23 2006
 BuildRequires: perl-devel
 
 %description
@@ -33,8 +33,8 @@ tags for the package.
 %perl_vendor_install INSTALLSCRIPT=%_rpmlibdir
 mv %buildroot%perl_vendor_privlib/fake.pm %buildroot%_rpmlibdir/
 
-mkdir -p %buildroot%_sysconfdir/rpm/macros.d
-cp -p perl5-alt-rpm-macros %buildroot%_sysconfdir/rpm/macros.d/perl5
+mkdir -p %buildroot/etc/rpm/macros.d
+cp -p perl5-alt-rpm-macros %buildroot/etc/rpm/macros.d/perl5
 
 %files
 %doc README.ALT
@@ -45,7 +45,7 @@ cp -p perl5-alt-rpm-macros %buildroot%_sysconfdir/rpm/macros.d/perl5
 %perl_vendor_privlib/B/PerlReq.pm
 %dir %perl_vendor_privlib/PerlReq
 %perl_vendor_privlib/PerlReq/Utils.pm
-%config	%_sysconfdir/rpm/macros.d/perl5
+%config /etc/rpm/macros.d/perl5
 
 %changelog
 * Wed Jun 07 2006 Alexey Tourbin <at@altlinux.ru> 0.6.0-alt1
