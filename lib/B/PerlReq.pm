@@ -329,7 +329,7 @@ sub compile {
 		$| = 1;
 		local $SIG{__DIE__} = sub {
 			print STDERR "# died at $0 line $CurLine:\n# @_";
-			require Carp; Carp::confess;
+			require Carp; Carp::confess();
 		};
 		grok_blocks();
 		grok_main();
