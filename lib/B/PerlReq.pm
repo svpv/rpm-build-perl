@@ -33,6 +33,7 @@ our @Skip = (
 	qr(\bvmsish\b),
 	qr(\bVMS|VMS\b),
 	qr(\bWin32|Win32\b),
+	qr(\bCygwin|Cygwin\b),
 # most common
 	qr(^Carp\.pm$),
 	qr(^Exporter\.pm$),
