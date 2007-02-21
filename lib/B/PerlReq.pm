@@ -41,26 +41,14 @@ our @Skip = (
 	qr(^vars\.pm$),
 );
 
-our $CurCV;
-sub const_sv ($) {
-	my $op = shift;
-	my $sv = $op->sv;
-	$sv = (($CurCV->PADLIST->ARRAY)[1]->ARRAY)[$op->targ] unless $$sv;
-	return $sv;
-}
-
-our $CurLevel = 0;
-our $CurEval;
-our $CurLine;
-our $CurSub;
-our $CurOpname;
-
 our ($Strict, $Relaxed, $Verbose, $Debug);
+
+use B::Walker qw(const_sv);
 
 sub RequiresPerl ($) {
 	my $v = shift;
 	my $dep = "perl-base >= " . verf_perl($v);
-	my $msg = "$dep at line $CurLine (depth $CurLevel)";
+	my $msg = "$dep at line $B::Walker::Line (depth $B::Walker::Level)";
 	if (not $Strict and $v < 5.006) {
 		print STDERR "# $msg old perl SKIP\n" if $Verbose;
 		return;
@@ -79,12 +67,12 @@ sub Requires ($;$) {
 	}
 	undef $prevDepF;
 	my $dep = path2dep($f) . ($v ? " >= " . verf($v) : "");
-	my $msg = "$dep at line $CurLine (depth $CurLevel)";
+	my $msg = "$dep at line $B::Walker::Line (depth $B::Walker::Level)";
 	if ($f !~ m#^\w+(?:[/-]\w+)*[.]p[lmh]$#) { # bits/ioctl-types.ph
 		print STDERR "# $msg invalid SKIP\n";
 		return;
 	}
-	if ($CurSub eq "BEGIN" and not $INC{$f} and $CurOpname ne "autouse") {
+	if ($B::Walker::Sub eq "BEGIN" and not $INC{$f} and $B::Walker::Opname ne "autouse") {
 		print STDERR "# $msg not loaded at BEGIN SKIP\n";
 		return;
 	}
@@ -92,14 +80,14 @@ sub Requires ($;$) {
 		print STDERR "# $msg builtin SKIP\n" if $Verbose;
 		return;
 	}
-	if ($CurSub eq "BEGIN" and $INC{$f}) {
+	if ($B::Walker::Sub eq "BEGIN" and $INC{$f}) {
 		goto req;
 	}
-	if (not $Strict and $CurEval) {
+	if (not $Strict and $B::Walker::BlockData{Eval}) {
 		print STDERR "# $msg inside eval SKIP\n";
 		return;
 	}
-	if ($Relaxed and $CurLevel > 4) {
+	if ($Relaxed and $B::Walker::Level > 4) {
 		print STDERR "# $msg deep SKIP\n";
 		return;
 	}
@@ -122,7 +110,7 @@ sub grok_perlio ($) {
 	$op = $op->sibling; return unless $$op;		# gv[*FH] -- arg1
 	$op = $op->sibling; return unless $$op and $op->name eq "const";
 	my $sv = const_sv($op); return unless $sv->can("PV");
-	local $CurOpname = $opname;
+	local $B::Walker::Opname = $opname;
 	my $arg2 = $sv->PV; $arg2 =~ s/\s//g;
 	if ($opname eq "open") {
 		return unless $arg2 =~ s/^[+]?[<>]+//;	# validate arg2
@@ -152,7 +140,7 @@ sub grok_require ($) {
 
 sub grok_import ($$@) {
 	my ($class, undef, @args) = @_;
-	local $CurOpname = $class;
+	local $B::Walker::Opname = $class;
 	if ($class eq "base") {
 		foreach my $m (@args) {
 			my $f = mod2path($m);
@@ -174,7 +162,7 @@ sub grok_import ($$@) {
 sub grok_version ($$@) {
 	my ($class, undef, $version) = @_;
 	my $f = mod2path($class);
-	local $CurOpname = "version";
+	local $B::Walker::Opname = "version";
 	Requires($f, $version);
 }
 
@@ -209,111 +197,15 @@ sub grok_method ($) { # class->method(args)
 	$methods{$method}->($class, $method, @args);
 }
 
-our %ops = (
+%B::Walker::Ops = (
 	'require'	=> \&grok_require,
 	'dofile'	=> \&grok_require,
 	'method_named'	=> \&grok_method,
 	'open'		=> \&grok_perlio,
 	'binmode'	=> \&grok_perlio,
 	'dbmopen'	=> sub { Requires("AnyDBM_File.pm") },
+	'leavetry'	=> sub { $B::Walker::BlockData{Eval} = $B::Walker::Level },
 );
-
-sub grok_root ($);
-sub grok_root ($) {
-	my $op = shift;
-	my $ref = ref($op);
-	return unless $ref and $$op;
-# caller is OP, gvsv is PADOP
-#	return if $ref eq "B::PADOP" or $ref eq "B::OP";
-	if ($ref eq "B::COP") {
-		$CurLine = $op->line;
-		return;
-	}
-	my $name = $op->name;
-	local $CurLevel = $CurLevel + 1;
-	local $CurEval = $CurLevel if $name eq "leavetry";
-	if ($ops{$name}) {
-		local $CurOpname = $name;
-		$ops{$name}->($op);
-	}
-	grok_root($op->pmreplroot) if $ref eq "B::PMOP";
-	use B qw(OPf_KIDS);
-	if ($op->flags & OPf_KIDS) {
-		for ($op = $op->first; $$op; $op = $op->sibling) {
-			grok_root($op);
-		}
-	}
-}
-
-sub grok_cv ($);
-
-sub grok_av ($$) {
-	my ($name, $av) = @_;
-	return if ref($av) ne "B::AV";
-	local $CurSub = $name;
-	grok_cv($_) for $av->ARRAY;
-}
-
-sub grok_pad ($) {
-	my $pad = shift;
-	return unless $pad->can("ARRAY");
-	grok_av ANON => $pad->ARRAY;
-}
-
-sub grok_cv ($) {
-	my $cv = shift;
-	return if ref($cv) ne "B::CV";
-	return if $cv->FILE and $cv->FILE ne $0;
-	local $CurCV = $cv;
-	grok_root($cv->ROOT);
-	grok_pad($cv->PADLIST);
-}
-
-sub grok_blocks () {
-	use B qw(begin_av init_av);
-	grok_av "BEGIN" => begin_av;
-	grok_av "INIT" => init_av;
-}
-
-sub grok_main () {
-	use B qw(main_cv main_root);
-	local $CurSub = "MAIN";
-	grok_cv(main_cv);
-	local $CurCV = main_cv;
-	grok_root(main_root);
-}
-
-sub grok_gv ($) {
-	my $gv = shift;
-	my $cv = $gv->CV;
-	return unless $$cv;
-	return if $cv->XSUB;
-	local $CurSub = $gv->SAFENAME;
-	$CurLine = $gv->LINE;
-	grok_cv($cv);
-}
-
-sub grok_stash { # similar to B::walksymtable
-	my ($symref, $prefix) = @_;
-	while (my ($sym) = each %$symref) {
-		no strict 'refs';
-		my $fullname = "*main::". $prefix . $sym;
-		if ($sym =~ /::\z/) {
-			$sym = $prefix . $sym;
-			grok_stash(\%$fullname, $sym)
-				if $sym ne "main::" && $sym ne "<none>::";
-		}
-		else {
-			use B qw(svref_2object);
-			grok_gv(svref_2object(\*$fullname))
-				if *$fullname{CODE};
-		}
-	}
-}
-
-sub grok_subs () {
-	grok_stash \%::, '';
-}
 
 sub compile {
 	my $pkg = __PACKAGE__;
@@ -329,18 +221,18 @@ sub compile {
 	return sub {
 		$| = 1;
 		local $SIG{__DIE__} = sub {
-			print STDERR "# died at $0 line $CurLine:\n# @_";
+			print STDERR "# died at $0 line $B::Walker::Line:\n# @_";
 			require Carp; Carp::confess();
 		};
-		grok_blocks();
-		grok_main();
-		grok_subs() if not $Relaxed;
+		B::Walker::walk_blocks();
+		B::Walker::walk_main();
+		B::Walker::walk_subs() if not $Relaxed;
 		finalize();
 	};
 }
 
 END {
-	print STDERR "# CurEval=$CurEval\n" if $CurEval;
+	print STDERR "# Eval=$B::Walker::BlockData{Eval}\n" if $B::Walker::BlockData{Eval};
 }
 
 1;
