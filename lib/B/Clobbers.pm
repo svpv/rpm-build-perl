@@ -41,10 +41,23 @@ sub do_readline ($) {
 	print "\t*** \$$var clobbered at $0 line $B::Walker::Line\n";
 }
 
+sub do_enteriter ($) {
+	my $op = shift;
+	my $op = $op->first->sibling->sibling;
+	return unless $$op;
+	$op = $op->first if $op->name eq "rv2gv";
+	return unless $op->name eq "gv";
+	my $gv = ref($op) eq "B::PADOP" ? padval($op->padix) : $op->gv;
+	my $var = $gv->SAFENAME;
+	return unless $vars{$var};
+	print STDERR "implicitly localized \$$var at $0 line $B::Walker::Line\n" if $Verbose;
+	$B::Walker::BlockData{_} = 1;
+}
 
 %B::Walker::Ops = (
 	pp_rv2sv	=> \&do_rv2sv,
 	readline	=> \&do_readline,
+	enteriter	=> \&do_enteriter,
 	grepwhile	=> sub { $B::Walker::BlockData{_} = 1 },
 	mapwhile	=> sub { $B::Walker::BlockData{_} = 1 },
 );
