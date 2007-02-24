@@ -23,6 +23,22 @@ sub do_gvsv ($) {
 	}
 }
 
+sub do_rv2gv ($) {
+	my $op = shift;
+	my $gv = $op->first;
+	return unless $gv->name eq "gv";
+	my $var = padval($gv->padix)->SAFENAME;
+	return unless $vars{$var};
+	if ($op->private & OPpLVAL_INTRO) {
+		$B::Walker::BlockData{$var} = 1;
+		print STDERR "local \*$var at $0 line $B::Walker::Line\n" if $Verbose;
+	}
+	elsif ($op = $op->next and $$op and $op->name eq "sassign") {
+		return if $B::Walker::BlockData{$var};
+		print "\t*** \*$var clobbered at $0 line $B::Walker::Line\n";
+	}
+}
+
 sub do_readline ($) {
 	my $op = shift;
 	$op = $op->next;
@@ -49,6 +65,7 @@ sub do_enteriter ($) {
 
 %B::Walker::Ops = (
 	gvsv		=> \&do_gvsv,
+	rv2gv		=> \&do_rv2gv,
 	readline	=> \&do_readline,
 	enteriter	=> \&do_enteriter,
 	grepwhile	=> sub { $B::Walker::BlockData{_} = 1 },
