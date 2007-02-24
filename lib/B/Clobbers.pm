@@ -5,11 +5,6 @@ use strict;
 use B::Walker qw(padval walk);
 use B qw(ppname OPpLVAL_INTRO);
 
-sub gvname ($) {
-	my $op = shift;
-	return padval($op->padix)->SAFENAME;
-}
-
 our @vars = qw(_ /);
 our %vars = map { $_ => 1 } @vars;
 our $Verbose = 1;
@@ -18,7 +13,7 @@ sub do_rv2sv ($) {
 	my $op = shift;
 	$op = $op->first;
 	return unless $op->name eq "gvsv";
-	my $var = gvname($op);
+	my $var = padval($op->padix)->SAFENAME;
 	return unless $vars{$var};
 	if ($op->private & OPpLVAL_INTRO) {
 		$B::Walker::BlockData{$var} = 1;
@@ -35,7 +30,7 @@ sub do_readline ($) {
 	$op = $op->next;
 	$op = $op->first while ref($op) eq "B::UNOP";
 	return unless $op->name eq "gvsv";
-	my $var = gvname($op);
+	my $var = padval($op->padix)->SAFENAME;
 	return unless $vars{$var};
 	return if $B::Walker::BlockData{$var};
 	print "\t*** \$$var clobbered at $0 line $B::Walker::Line\n";
