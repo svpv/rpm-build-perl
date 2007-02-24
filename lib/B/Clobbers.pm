@@ -83,3 +83,18 @@ sub compile {
 }
 
 1;
+
+__END__
+
+=head1	NAME
+
+B::Clobbers - clobbering analyzer
+
+=head1	COPYING
+
+Copyright (c) 2007 Alexey Tourbin, ALT Linux Team.
+
+This is free software; you can redistribute it and/or modify it under the terms
+of the GNU General Public License as published by the Free Software Foundation;
+either version 2 of the License, or (at your option) any later version.
+
