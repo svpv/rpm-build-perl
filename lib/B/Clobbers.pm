@@ -9,10 +9,8 @@ our @vars = qw(_ /);
 our %vars = map { $_ => 1 } @vars;
 our $Verbose = 1;
 
-sub do_rv2sv ($) {
+sub do_gvsv ($) {
 	my $op = shift;
-	$op = $op->first;
-	return unless $op->name eq "gvsv";
 	my $var = padval($op->padix)->SAFENAME;
 	return unless $vars{$var};
 	if ($op->private & OPpLVAL_INTRO) {
@@ -50,7 +48,7 @@ sub do_enteriter ($) {
 }
 
 %B::Walker::Ops = (
-	pp_rv2sv	=> \&do_rv2sv,
+	gvsv		=> \&do_gvsv,
 	readline	=> \&do_readline,
 	enteriter	=> \&do_enteriter,
 	grepwhile	=> sub { $B::Walker::BlockData{_} = 1 },
