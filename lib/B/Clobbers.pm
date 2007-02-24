@@ -75,6 +75,9 @@ sub do_enteriter ($) {
 sub compile {
 	return sub {
 		local $| = 1;
+		local $SIG{__DIE__} = sub {
+			print STDERR "Dying at $0 line $B::Walker::Line\n";
+		};
 		walk();
 	}
 }
