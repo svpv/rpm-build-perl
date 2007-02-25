@@ -39,8 +39,11 @@ sub process_file {
 	} elsif ($basename =~ /\.pm$/) {
 		$prov{$basename}{prov} = 1;
 		warn "# $fname has basename $basename, checking version\n" if $Verbose;
-	} elsif ($basename =~ /\.al$/) {
+	} elsif ($basename =~ /\.(al|ix)$/) {
 		warn "# $fname (autoloaded file SKIP)" if $Verbose > 1;
+		return;
+	} elsif ($basename =~ /\.pod$/) {
+		warn "# $fname (pod file SKIP)" if $Verbose > 1;
 		return;
 	} else {
 		warn "# $fname has basename $basename (SKIP)\n";
