@@ -117,4 +117,6 @@ cmp_ok "perl(AnyDBM_File.pm)",	"eq", grok q(dbmopen %db, "db.$$", 0600);
 cmp_ok "perl(attributes.pm)",	"eq", grok q(my $x : shared = 1);
 cmp_ok "perl(File/Glob.pm)",	"eq", grok q(<?>);
 
+cmp_ok "", "eq", grok q(PerlIO::encoding->VERSION >= 0.02);
+
 #END { $? = 0; }

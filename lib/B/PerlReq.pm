@@ -173,6 +173,7 @@ sub grok_import ($$@) {
 
 sub grok_version ($$@) {
 	my ($class, undef, $version) = @_;
+	return unless $version;
 	my $f = mod2path($class);
 	local $CurOpname = "version";
 	Requires($f, $version);
