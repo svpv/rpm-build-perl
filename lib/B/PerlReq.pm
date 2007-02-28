@@ -170,6 +170,11 @@ sub grok_import ($$@) {
 		my $f = mod2path($args[0]);
 		Requires($f);
 	}
+	elsif ($class eq "encoding") {
+		require Config;
+		Requires("PerlIO/encoding.pm") if $Config::Config{useperlio};
+		Requires("Filter/Util/Call.pm") if grep { $_ eq "Filter" } @args;
+	}
 }
 
 sub grok_version ($$@) {

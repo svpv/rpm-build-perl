@@ -119,4 +119,12 @@ cmp_ok "perl(File/Glob.pm)",	"eq", grok q(<?>);
 
 cmp_ok "", "eq", grok q(PerlIO::encoding->VERSION >= 0.02);
 
+cmp_ok "perl(encoding.pm)\nperl(PerlIO/encoding.pm)\nperl(Filter/Util/Call.pm)\nperl(utf8.pm)",
+	"eq", grok <<'EOF';
+# from Encode/t/jperl.t
+	use encoding "euc-jp", Filter=>1;
+	use utf8;
+	our $¿Í = 2;
+EOF
+
 #END { $? = 0; }
