@@ -152,6 +152,7 @@ sub grok_require ($) {
 
 sub grok_import ($$@) {
 	my ($class, undef, @args) = @_;
+	return unless @args;
 	local $CurOpname = $class;
 	if ($class eq "base") {
 		foreach my $m (@args) {
