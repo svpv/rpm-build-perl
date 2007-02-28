@@ -35,7 +35,7 @@ sub Provides ($$) {
 
 my ($lib, $arch) = @Config{qw{installprivlib installarchlib}};
 
-# Valid for perl-5.8.0 - perl-5.8.7.
+# Valid for perl-5.8.0 - perl-5.8.9.
 Provides "$lib/attributes.pm"	=> "perl(attributes.pm) = 0.";
 Provides "$lib/AutoLoader.pm"	=> "perl(AutoLoader.pm) = 5.";
 Provides "$lib/base.pm"		=> "perl(base.pm) = ";
@@ -50,5 +50,5 @@ Provides "$arch/Data/Dumper.pm"	=> "perl(Data/Dumper.pm) = 2.1";
 Provides "$arch/IO/File.pm"	=> "perl(IO/File.pm) = 1.";
 Provides "$arch/File/Glob.pm"	=> "perl(File/Glob.pm) = ";
 Provides "$arch/Socket.pm"	=> "perl(Socket.pm) = 1.7";
-Provides "$arch/POSIX.pm"	=> "perl(POSIX.pm) = 1.0";
+Provides "$arch/POSIX.pm"	=> "perl(POSIX.pm) = 1.";
 
