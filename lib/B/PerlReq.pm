@@ -115,6 +115,15 @@ sub finalize {
 		if $prevDepF;
 }
 
+sub check_perlio_string ($) {
+	local $_ = shift;
+	while (s/\b(\w+)[(](\S+)[)]//g) {
+		Requires("PerlIO.pm");
+		Requires("PerlIO/$1.pm");
+		Requires("Encode.pm") if $1 eq "encoding";
+	}
+}
+
 sub grok_perlio ($) {
 	my $op = shift;
 	my $opname = $op->name;
@@ -132,11 +141,7 @@ sub grok_perlio ($) {
 			Requires("PerlIO/scalar.pm");
 		}
 	}
-	while ($arg2 =~ s/\b(\w+)[(](\S+)[)]//g) {
-		Requires("PerlIO.pm");
-		Requires("PerlIO/$1.pm");
-		Requires("Encode.pm") if $1 eq "encoding";
-	}
+	check_perlio_string($arg2);
 }
 
 sub grok_require ($) {
