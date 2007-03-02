@@ -117,7 +117,7 @@ sub finalize {
 
 sub check_perlio_string ($) {
 	local $_ = shift;
-	while (s/\b(\w+)[(](\S+)[)]//g) {
+	while (s/\b(\w+)[(](\S+?)[)]//g) {
 		Requires("PerlIO.pm");
 		Requires("PerlIO/$1.pm");
 		Requires("Encode.pm") if $1 eq "encoding";
