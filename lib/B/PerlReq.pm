@@ -115,12 +115,32 @@ sub finalize {
 		if $prevDepF;
 }
 
+sub check_encoding ($) {
+	my $enc = shift;
+	eval { local $SIG{__DIE__}; require Encode; } or do {
+		print STDERR "Encode.pm not available at $0 line $CurLine\n";
+		return;
+	};
+	my $e = Encode::resolve_alias($enc) or do {
+		print STDERR "invalid encoding $enc at $0 line $CurLine\n";
+		return;
+	};
+	my $mod = $Encode::ExtModule{$e} || $Encode::ExtModule{lc($e)} or do {
+		print STDERR "no module for encoding $enc at $0 line $CurLine\n";
+		return;
+	};
+	Requires(mod2path($mod));
+}
+
 sub check_perlio_string ($) {
 	local $_ = shift;
 	while (s/\b(\w+)[(](\S+?)[)]//g) {
 		Requires("PerlIO.pm");
 		Requires("PerlIO/$1.pm");
-		Requires("Encode.pm") if $1 eq "encoding";
+		if ($1 eq "encoding") {
+			Requires("Encode.pm");
+			check_encoding($2);
+		}
 	}
 }
 
