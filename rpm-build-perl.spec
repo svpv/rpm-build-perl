@@ -15,8 +15,8 @@ Requires: perl(B.pm) perl(O.pm) perl(Safe.pm)
 Conflicts: rpm-build <= 4.0.4-alt24
 Conflicts: perl-devel <= 1:5.8.1-alt4
 
-# Automatically added by buildreq on Mon Oct 23 2006
-BuildRequires: perl-devel
+# Automatically added by buildreq on Fri Mar 09 2007
+BuildRequires: perl-Encode-JP perl-Encode-KR perl-Filter perl-devel
 
 %description
 These herlper scripts will look at perl source files in your package,

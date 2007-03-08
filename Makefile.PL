@@ -5,7 +5,7 @@ WriteMakefile(
 	NAME => 'rpm-build-perl',
 	VERSION_FROM => 'lib/B/PerlReq.pm',
 	EXE_FILES => [ "perl.req", "perl.prov" ],
-	PREREQ_PM => { B => 0, O => 0, Safe => 0, Test::More => 0 },
+	PREREQ_PM => { B => 0, O => 0, Safe => 0, Test::More => 0, Encode => 0 },
 	AUTHOR => 'Alexey Tourbin <at@altlinux.org>',
 	ABSTRACT => 'Calculate dependencies for Perl sources',
 	dist => { COMPRESS => 'gzip -9f' },
