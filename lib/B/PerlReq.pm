@@ -362,8 +362,7 @@ sub compile {
 	return sub {
 		$| = 1;
 		local $SIG{__DIE__} = sub {
-			print STDERR "# died at $0 line $CurLine:\n# @_";
-			require Carp; Carp::confess();
+			print STDERR "dying at $0 line $CurLine\n" unless $^S;
 		};
 		grok_blocks();
 		grok_main();
