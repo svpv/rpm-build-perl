@@ -198,6 +198,7 @@ sub grok_import ($$@) {
 	elsif ($class eq "encoding") {
 		require Config;
 		Requires("PerlIO/encoding.pm") if $Config::Config{useperlio};
+		check_encoding($args[0]) if $args[0] =~ /^[^:]/;
 		Requires("Filter/Util/Call.pm") if grep { $_ eq "Filter" } @args;
 	}
 }
