@@ -20,15 +20,6 @@ perl.prov.files: perl.req.files
 	$(PERL) -pe 's/requires/provides/g; s/req/prov/g' $< >$@
 	$(CHMOD) $(PERM_RWX) $@
 
-# for maintainer
-buildreq: dist
-	buildreq --args "--define '_sourcedir $$PWD'" $(NAME).spec
-
-rpm: dist
-	rpm -ba --define "_sourcedir $$PWD" $(NAME).spec
-
-.PHONY: buildreq rpm
-
 EOF
 
 }
