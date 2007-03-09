@@ -30,7 +30,7 @@ tags for the package.
 %perl_vendor_build
 
 %install
-%perl_vendor_install INSTALLSCRIPT=%_rpmlibdir
+%perl_vendor_install INSTALLSCRIPT=%_rpmlibdir INSTALLVENDORSCRIPT=%_rpmlibdir
 mv %buildroot%perl_vendor_privlib/fake.pm %buildroot%_rpmlibdir/
 
 mkdir -p %buildroot/etc/rpm/macros.d
