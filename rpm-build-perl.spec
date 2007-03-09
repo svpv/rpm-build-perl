@@ -39,7 +39,9 @@ cp -p perl5-alt-rpm-macros %buildroot/etc/rpm/macros.d/perl5
 %files
 %doc README.ALT
 %_rpmlibdir/perl.req
+%_rpmlibdir/perl.req.files
 %_rpmlibdir/perl.prov
+%_rpmlibdir/perl.prov.files
 %_rpmlibdir/fake.pm
 %dir %perl_vendor_privlib/B
 %perl_vendor_privlib/B/PerlReq.pm

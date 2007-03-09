@@ -1,0 +1,34 @@
+#!/bin/sh -efu
+#
+# Copyright (c) 2007 Alexey Tourbin, ALT Linux Team.
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This is /usr/lib/rpm/find-requires filter.  It reads << file -NF$'\t' >>
+# output and decides which files should be processed with perl.req.
+#
+
+while IFS=$'\t' read -r f t; do
+	case "$t" in
+		*"perl script text"*)
+			echo "$f"; continue ;;
+		*"Perl5 module source text"*)
+			echo "$f"; continue ;;
+		*" text")
+			;;
+		*)
+			continue ;;
+	esac
+	case "$f" in
+		*.pm)
+			echo "$f"; continue ;;
+		*.pl)
+			# XXX extra check needed
+			echo "$f"; continue ;;
+		*.ph)
+			echo "$f"; continue ;;
+	esac
+done
