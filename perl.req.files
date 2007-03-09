@@ -16,7 +16,8 @@ while IFS=$'\t' read -r f t; do
 		*"perl script text"*)
 			echo "$f"; continue ;;
 		*"Perl5 module source text"*)
-			echo "$f"; continue ;;
+			# still check suffix
+			;;
 		*" text")
 			;;
 		*)
