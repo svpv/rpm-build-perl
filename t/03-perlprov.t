@@ -40,7 +40,7 @@ Provides "$lib/attributes.pm"	=> "perl(attributes.pm) = 0.";
 Provides "$lib/AutoLoader.pm"	=> "perl(AutoLoader.pm) = 5.";
 Provides "$lib/base.pm"		=> "perl(base.pm) = ";
 Provides "$lib/constant.pm"	=> "perl(constant.pm) = 1.0";
-Provides "$lib/Exporter.pm"	=> "perl(Exporter.pm) = 5.5";
+Provides "$lib/Exporter.pm"	=> "perl(Exporter.pm) = 5.";
 Provides "$lib/fields.pm"	=> "perl(fields.pm) = ";
 Provides "$lib/File/Basename.pm" => "perl(File/Basename.pm) = 2.";
 Provides "$lib/Getopt/Long.pm"	=> "perl(Getopt/Long.pm) = 2.";
