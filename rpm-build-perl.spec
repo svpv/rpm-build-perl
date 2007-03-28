@@ -1,5 +1,5 @@
 Name: rpm-build-perl
-Version: 0.6.1
+Version: 0.6.2
 Release: alt1
 
 Summary: RPM helper scripts to calculate Perl dependencies
@@ -52,6 +52,21 @@ cp -p macros.env %buildroot/etc/rpm/macros.d/perl5.env
 %config /etc/rpm/macros.d/perl5.env
 
 %changelog
+* Wed Mar 28 2007 Alexey Tourbin <at@altlinux.ru> 0.6.2-alt1
+- B/PerlReq.pm:
+  + fixed Carp::confess syntax problem (rt.cpan.org #22512, reported by
+    Steve Peters); actually removed Carp::confess and added $^S check
+  + added Cygwin pattern to OS-specific dependencies
+  + grok_version: do nothing unless version is set, so that the code
+    like 'Module->VERSION()', which yields Module version, does not
+    produce dependency on the Module
+  + enhanced `use encoding ...' and PerlIO dependency detection
+- updated test suite for recent perl-5.8 snapshot
+- added new files, for possible use with future rpm-build releases:
+  + perl.req.files (perl.prov.files) - will select perl files for req/prov
+  + /etc/rpm/macros.d/perl.env - piece of rpm-build scriplets' preamble
+  + also placed a few rpm-build perl macros to /etc/rpm/macros.d/perl
+
 * Mon Oct 23 2006 Alexey Tourbin <at@altlinux.ru> 0.6.1-alt1
 - imported sources into git repo, which is available at
   git://git.altlinux.org/people/at/packages/rpm-build-perl.git

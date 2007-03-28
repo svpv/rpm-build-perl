@@ -1,3 +1,18 @@
+* Wed Mar 28 2007 Alexey Tourbin <at@altlinux> 0.6.2-alt1
+- B/PerlReq.pm:
+  + fixed Carp::confess syntax problem (rt.cpan.org #22512, reported by
+    Steve Peters); actually removed Carp::confess and added $^S check
+  + added Cygwin pattern to OS-specific dependencies
+  + grok_version: do nothing unless version is set, so that the code
+    like 'Module->VERSION()', which yields Module version, does not
+    produce dependency on the Module
+  + enhanced `use encoding ...' and PerlIO dependency detection
+- updated test suite for recent perl-5.8 snapshot
+- added new files, for possible use with future rpm-build releases:
+  + perl.req.files (perl.prov.files) - will select perl files for req/prov
+  + /etc/rpm/macros.d/perl.env - piece of rpm-build scriplets' preamble
+  + also placed a few rpm-build perl macros to /etc/rpm/macros.d/perl
+
 * Mon Oct 23 2006 Alexey Tourbin <at@altlinux> 0.6.1-alt1
 - imported sources into git repo, which is available at
   git://git.altlinux.org/people/at/packages/rpm-build-perl.git
@@ -10,7 +25,8 @@
   + major internal cleanup
   + a sketch for event-driven optree analysis blah-blah-blah
   + changed rules for dependencies found in BEGIN blocks:
-    - never list ones that have not been loaded according to %INC
+    - never list ones that have not been loaded according to %INC,
+      except for 'use autouse qw(Module)' case
     - always list loaded ones (there's no easy way to find out if it's been
       loaded by another module; I tried @INC hook + DB::DB debugger trap but
       it didn't work)
