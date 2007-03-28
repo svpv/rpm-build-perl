@@ -35,6 +35,7 @@ mv %buildroot%perl_vendor_privlib/fake.pm %buildroot%_rpmlibdir/
 
 mkdir -p %buildroot/etc/rpm/macros.d
 cp -p perl5-alt-rpm-macros %buildroot/etc/rpm/macros.d/perl5
+cp -p macros.env %buildroot/etc/rpm/macros.d/perl5.env
 
 %files
 %doc README.ALT
@@ -48,6 +49,7 @@ cp -p perl5-alt-rpm-macros %buildroot/etc/rpm/macros.d/perl5
 %dir %perl_vendor_privlib/PerlReq
 %perl_vendor_privlib/PerlReq/Utils.pm
 %config /etc/rpm/macros.d/perl5
+%config /etc/rpm/macros.d/perl5.env
 
 %changelog
 * Mon Oct 23 2006 Alexey Tourbin <at@altlinux.ru> 0.6.1-alt1

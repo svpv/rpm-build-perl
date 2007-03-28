@@ -11,6 +11,7 @@ perl.prov
 perl.req
 perl.req.files
 perl5-alt-rpm-macros
+macros.env
 rpm-build-perl.spec
 t/01-B-PerlReq.t
 t/02-perlreq.t
