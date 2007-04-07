@@ -60,6 +60,7 @@ cmp_ok $d2, 'eq', grok qq({eval { require $m; };} require $m2; {eval { require $
 cmp_ok $d2, 'eq', grok qq(my \$x = sub { eval { require $m; }; require $m2; };);
 cmp_ok $d2, 'eq', grok qq(eval { eval { require $m; }; require $m; }; require $m2;);
 cmp_ok $d2, 'eq', grok qq(eval { require $m; } || eval { require $m3; }; require $m2;);
+cmp_ok $d2, 'eq', grok qq(require $m2; eval { $m2->VERSION(0.1); };);
 
 cmp_ok "$d >= 2.0",	'eq', grok qq(use $m 2;);
 cmp_ok "$d >= 2.0",	'eq', grok qq(use $m 2.0;);
