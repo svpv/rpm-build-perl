@@ -18,7 +18,7 @@ while IFS=$'\t' read -r f t; do
 		*"Perl5 module source text"*)
 			# still check suffix
 			;;
-		*" text")
+		*" text"*)
 			;;
 		*)
 			continue ;;
