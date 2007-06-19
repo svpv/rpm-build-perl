@@ -45,7 +45,9 @@ cp -p macros.env %buildroot/etc/rpm/macros.d/perl5.env
 %_rpmlibdir/perl.prov.files
 %_rpmlibdir/fake.pm
 %dir %perl_vendor_privlib/B
+%perl_vendor_privlib/B/Walker.pm
 %perl_vendor_privlib/B/PerlReq.pm
+%perl_vendor_privlib/B/Clobbers.pm
 %dir %perl_vendor_privlib/PerlReq
 %perl_vendor_privlib/PerlReq/Utils.pm
 %config /etc/rpm/macros.d/perl5

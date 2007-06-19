@@ -5,7 +5,9 @@ Makefile.PL
 README
 README.ALT
 fake.pm
+lib/B/Walker.pm
 lib/B/PerlReq.pm
+lib/B/Clobbers.pm
 lib/PerlReq/Utils.pm
 perl.prov
 perl.req
