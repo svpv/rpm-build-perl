@@ -106,15 +106,15 @@ sub finalize {
 sub check_encoding ($) {
 	my $enc = shift;
 	eval { local $SIG{__DIE__}; require Encode; } or do {
-		print STDERR "Encode.pm not available at $0 line $CurLine\n";
+		print STDERR "Encode.pm not available at $0 line $B::Walker::Line\n";
 		return;
 	};
 	my $e = Encode::resolve_alias($enc) or do {
-		print STDERR "invalid encoding $enc at $0 line $CurLine\n";
+		print STDERR "invalid encoding $enc at $0 line $B::Walker::Line\n";
 		return;
 	};
 	my $mod = $Encode::ExtModule{$e} || $Encode::ExtModule{lc($e)} or do {
-		print STDERR "no module for encoding $enc at $0 line $CurLine\n";
+		print STDERR "no module for encoding $enc at $0 line $B::Walker::Line\n";
 		return;
 	};
 	Requires(mod2path($mod));
@@ -254,7 +254,7 @@ sub compile {
 	return sub {
 		$| = 1;
 		local $SIG{__DIE__} = sub {
-			print STDERR "dying at $0 line $CurLine\n" unless $^S;
+			print STDERR "dying at $0 line $B::Walker::Line\n" unless $^S;
 		};
 		B::Walker::walk_blocks();
 		B::Walker::walk_main();
