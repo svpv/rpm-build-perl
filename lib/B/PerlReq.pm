@@ -74,10 +74,6 @@ my $prevDepF;
 
 sub Requires ($;$) {
 	my ($f, $v) = @_;
-	if ($prevDepF and $prevDepF ne $f) {
-		print path2dep($prevDepF) . "\n";
-	}
-	undef $prevDepF;
 	my $dep = path2dep($f) . ($v ? " >= " . verf($v) : "");
 	my $msg = "$dep at line $CurLine (depth $CurLevel)";
 	if ($f !~ m#^\w+(?:[/-]\w+)*[.]p[lmh]$#) { # bits/ioctl-types.ph
@@ -104,6 +100,10 @@ sub Requires ($;$) {
 		return;
 	}
 req:	print STDERR "# $msg REQ\n" if $Verbose;
+	if ($prevDepF and $prevDepF ne $f) {
+		print path2dep($prevDepF) . "\n";
+	}
+	undef $prevDepF;
 	if ($v) {
 		print "$dep\n";
 	} else {
