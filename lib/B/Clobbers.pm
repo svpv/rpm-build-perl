@@ -7,7 +7,7 @@ use B qw(ppname OPpLVAL_INTRO);
 
 our @vars = qw(_ /);
 our %vars = map { $_ => 1 } @vars;
-our $Verbose = 1;
+our $Verbose = 0;
 
 sub do_gvsv ($) {
 	my $op = shift;
@@ -73,6 +73,11 @@ sub do_enteriter ($) {
 );
 
 sub compile {
+	my $pkg = __PACKAGE__;
+	for my $opt (@_) {
+		$opt =~ /^-(?:v|-?verbose)$/ and ++$Verbose or
+		die "$pkg: unknown option: $opt\n";
+	}
 	return sub {
 		local $| = 1;
 		local $SIG{__DIE__} = sub {
