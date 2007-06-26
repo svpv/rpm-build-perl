@@ -5,7 +5,7 @@ use strict;
 use B::Walker qw(padval walk);
 use B qw(ppname OPpLVAL_INTRO);
 
-our @vars = qw(_ /);
+our @vars = qw(_ / , \ ");
 our %vars = map { $_ => 1 } @vars;
 our $Verbose = 0;
 
