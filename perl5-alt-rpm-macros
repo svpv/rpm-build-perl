@@ -66,7 +66,7 @@ perl_vendor_build() { \
 	export PERL_EXTUTILS_AUTOINSTALL="${PERL_EXTUTILS_AUTOINSTALL:---skip}" \
 	export XSUBPP_STATIC_XS=${XSUBPP_STATIC_XS:-1} \
 		_perl_vendor_fixin \
-	if [ -f Build.PL ]; then \
+	if %__grep -qs -Ew '(dist|module)_name' Build.PL; then \
 		_perl_vendor_MB_build "$@" \
 	else \
 		_perl_vendor_MM_build "$@" \
@@ -100,7 +100,7 @@ _perl_vendor_save_prereq() { \
 	   %__grep -F 'perl(' .perl.req >>%buildroot/.perl.req; fi \
 } \
 perl_vendor_install() { \
-	if [ -f Build.PL ]; then \
+	if %__grep -qs -Ew '(dist|module)_name' Build.PL; then \
 		_perl_vendor_MB_install "$@" \
 	else \
 		_perl_vendor_MM_install "$@" \
