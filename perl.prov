@@ -122,12 +122,29 @@ sub extract_version {
 	my $code = "$line\n; \$VERSION";
 	$code =~ s/\$\Q$pkg\::VERSION/\$VERSION/g if $pkg;
 
-	use Safe;
-	my $safe = Safe->new;
-	$safe->permit_only(qw(:base_core :base_mem :base_orig
-		entereval grepstart grepwhile mapstart mapwhile));
+	require Safe;
+	local *Sandbox;
+	my $safe = Safe->new("Sandbox");
+	$safe->permit_only(qw(:base_core :base_mem :base_loop :base_orig entereval));
+
+	if ($code =~ s/\buse\s+version\b[^;]*;//g or $code =~ /\bqv\b/
+		or $code =~ /\bversion(?:::)?->new\b/ or $code =~ /\bnew\s+version\b/)
+	{
+		eval { require version } or warn "# $@\n";
+		*Sandbox::qv = \&version::qv;
+		*Sandbox::version::new
+			= defined &version::vxs::new ? \&version::vxs::new
+			: defined &version::vpp::new ? \&version::vpp::new
+			: \&version::new;
+	}
+
 	my $version = $safe->reval($code);
-	goto bad if $@ or not $version;
+	goto bad if not $version;
+
+	if (ref($version) =~ /\bversion\b/) {
+		bless $version, "version";
+		$version = $version->numify;
+	}
 
 	use B qw(svref_2object);
 	our $perlbug32967 = \$version;
