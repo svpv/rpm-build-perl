@@ -112,17 +112,16 @@ according to Perl rules, e.g. I<1.2.3> -> I<1.002003>.
 
 =cut
 
-use B qw(class);
 sub sv_version ($) {
 	my $sv = shift;
-	my $class = class($sv);
-	if ($class eq "IV" or $class eq "PVIV") {
+	use B qw(SVf_IOK SVf_NOK);
+	if ($sv->FLAGS & SVf_IOK) {
 		return $sv->int_value;
 	}
-	if ($class eq "NV" or $class eq "PVNV") {
+	if ($sv->FLAGS & SVf_NOK) {
 		return $sv->NV;
 	}
-	if ($class eq "PVMG") {
+	if ($sv->can("MAGIC")) {
 		for (my $mg = $sv->MAGIC; $mg; $mg = $mg->MOREMAGIC) {
 			next if $mg->TYPE ne "V";
 			my @v = $mg->PTR =~ /(\d+)/g;
@@ -132,7 +131,8 @@ sub sv_version ($) {
 	if ($sv->can("PV")) {
 		my $v = $sv->PV;
 		if ($v =~ /^\s*\.?\d/) {
-			$v =~ s/_//g;
+			# This is WRONG:
+			# $v =~ s/_//g;
 			return $v + 0;
 		}
 	}
