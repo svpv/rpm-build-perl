@@ -76,7 +76,7 @@ truncated to 3 digits after decimal point, except for all zeroes, e.g.
 I<2.000> -> I<2.0>.
 
 Update.  The algorithm has been amended in almost compatible way
-so that versions do not lose percision when truncated.  Now we allow
+so that versions do not lose precision when truncated.  Now we allow
 one more I<.ddd> series at the end, but I<.000> is still truncated
 by default, e.g. I<2.123> -> I<2.123>, I<2.123456> -> I<2.123.456>.
 
