@@ -78,8 +78,12 @@ sub process_file {
 			next;
 		}
 
-		if ($val =~ /\b\d|\d\./) {
-			# there's a version number
+		if ($val =~ /\b\d|\d\./) { # there's a version number
+			# check next line if it has e.g. $VERSION = eval $VERSION
+			if ((my $next_line = <$fh>) =~ /\bVERSION\b.*=/) {
+				chomp $next_line;
+				$_ .= "\n" . $next_line;
+			}
 			my $v = extract_version($fname, $_, $pkg);
 			$prov{$basename}{ver}{$v} = 1 if $v;
 			last;
