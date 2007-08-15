@@ -106,6 +106,7 @@ sub walk_gv ($) {
 	walk_cv($cv);
 }
 
+sub walk_stash ($$);
 sub walk_stash ($$) { # similar to B::walksymtable
 	my ($symref, $prefix) = @_;
 	while (my ($sym) = each %$symref) {
