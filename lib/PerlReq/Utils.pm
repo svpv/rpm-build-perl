@@ -75,20 +75,19 @@ Format module version number, e.g. I<2.12> -> I<2.120>.  Currently
 truncated to 3 digits after decimal point, except for all zeroes, e.g.
 I<2.000> -> I<2.0>.
 
-=for comment
-$ perl -le 'print 2.01 * 1000'
-2010
-$ perl -le 'print int(2.01 * 1000)'
-2009
-$
-Gotta use 1e-3 and 1e-6.
+Update.  The algorithm has been amended in almost compatible way
+so that versions do not lose percision when truncated.  Now we allow
+one more I<.ddd> series at the end, but I<.000> is still truncated
+by default, e.g. I<2.123> -> I<2.123>, I<2.123456> -> I<2.123.456>.
 
 =cut
 
 sub verf ($) {
 	my $v = shift;
-	$v = sprintf("%.3f", int($v * 1000 + 1e-3) / 1000 + 1e-6);
-	$v =~ s/\.000$/.0/g;
+	$v = sprintf "%.6f", $v;
+	$v =~ s/[.]000000$/.0/ ||
+		$v =~ s/000$// ||
+		$v =~ s/(\d\d\d)$/.$1/;
 	return $v;
 }
 
