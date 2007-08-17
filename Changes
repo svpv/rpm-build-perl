@@ -1,3 +1,16 @@
+* Fri Aug 17 2007 Alexey Tourbin <at@altlinux> 0.6.3-alt1
+- perl.req.files: fixed "text" pattern for file(1)
+- B/PerlReq.pm: fixed bug in prevDepF logic
+- macros.d/perl5:
+  + when doing Build.PL, parse _build/prereqs and dump .perl.req
+  + better check for valid Build.PL (must have "dist_name" or "module_name")
+- PerlReq/Utils.pm: updated sv_version() algorithm, cf. perlbug 32967
+- perl.prov:
+  + implemented initial support for version.pm
+  + when version assignment is found, check next line if it has
+    e.g. '$VERSION = eval $VERSION'
+  + strip "use vars" statement before eval, fixes perl-Mozilla-LDAP
+
 * Wed Mar 28 2007 Alexey Tourbin <at@altlinux> 0.6.2-alt1
 - B/PerlReq.pm:
   + fixed Carp::confess syntax problem (rt.cpan.org #22512, reported by
