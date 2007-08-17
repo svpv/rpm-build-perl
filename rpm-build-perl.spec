@@ -1,5 +1,5 @@
 Name: rpm-build-perl
-Version: 0.6.2
+Version: 0.6.3
 Release: alt1
 
 Summary: RPM helper scripts to calculate Perl dependencies
@@ -15,7 +15,7 @@ Requires: perl(B.pm) perl(O.pm) perl(Safe.pm)
 Conflicts: rpm-build <= 4.0.4-alt24
 Conflicts: perl-devel <= 1:5.8.1-alt4
 
-# Automatically added by buildreq on Fri Mar 09 2007
+# Automatically added by buildreq on Fri Aug 17 2007
 BuildRequires: perl-Encode-JP perl-Encode-KR perl-Filter perl-devel
 
 %description
@@ -54,6 +54,19 @@ cp -p macros.env %buildroot/etc/rpm/macros.d/perl5.env
 %config /etc/rpm/macros.d/perl5.env
 
 %changelog
+* Fri Aug 17 2007 Alexey Tourbin <at@altlinux.ru> 0.6.3-alt1
+- perl.req.files: fixed "text" pattern for file(1)
+- B/PerlReq.pm: fixed bug in prevDepF logic
+- macros.d/perl5:
+  + when doing Build.PL, parse _build/prereqs and dump .perl.req
+  + better check for valid Build.PL (must have "dist_name" or "module_name")
+- PerlReq/Utils.pm: updated sv_version() algorithm, cf. perlbug 32967
+- perl.prov:
+  + implemented initial support for version.pm
+  + when version assignment is found, check next line if it has
+    e.g. '$VERSION = eval $VERSION'
+  + strip "use vars" statement before eval, fixes perl-Mozilla-LDAP
+
 * Wed Mar 28 2007 Alexey Tourbin <at@altlinux.ru> 0.6.2-alt1
 - B/PerlReq.pm:
   + fixed Carp::confess syntax problem (rt.cpan.org #22512, reported by
