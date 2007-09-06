@@ -128,4 +128,6 @@ cmp_ok "perl(encoding.pm)\nperl(PerlIO/encoding.pm)\nperl(Encode/JP.pm)\nperl(Fi
 	our $¿Í = 2;
 EOF
 
+cmp_ok "perl(Cwd.pm) >= 1.0",	"eq", grok q(use Cwd 0==0);
+
 #END { $? = 0; }
