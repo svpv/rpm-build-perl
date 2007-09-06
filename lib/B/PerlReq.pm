@@ -245,10 +245,20 @@ sub grok_method ($) { # class->method(args)
 		}
 		unless (defined $arg) {
 			# dereference sv value
-			# XXX requires perl >= 5.8.1
 			if ($sv->can("object_2svref")) {
 				my $rv = $sv->object_2svref;
 				$arg = $$rv if ref $rv;
+			}
+			# object_2svref is new to perl >= 5.8.1
+			# try to save constants for older perls
+			elsif ($sv->can("PV")) {
+				$arg = $sv->PV;
+			}
+			elsif ($sv->can("NV")) {
+				$arg = $sv->NV;
+			}
+			elsif ($sv->can("int_value")) {
+				$arg = $sv->int_value;
 			}
 		}
 		push @args, $arg;
