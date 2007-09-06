@@ -115,6 +115,10 @@ according to Perl rules, e.g. I<1.2.3> -> I<1.002003>.
 
 sub sv_version ($) {
 	my $sv = shift;
+	if ($$sv == ${B::sv_yes()}) {
+		# very special case: (0==0) -> 1
+		return 1;
+	}
 	if ($sv->can("FLAGS")) {
 		use B qw(SVf_IOK SVf_NOK);
 		if ($sv->FLAGS & SVf_IOK) {
