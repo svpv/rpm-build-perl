@@ -362,7 +362,9 @@ sub compile {
 	return sub {
 		$| = 1;
 		local $SIG{__DIE__} = sub {
-			print STDERR "dying at $0 line $CurLine\n" unless $^S;
+			# checking $^S is unreliable because O.pm uses eval
+			require Carp;
+			Carp::cluck();
 		};
 		grok_blocks();
 		grok_main();
