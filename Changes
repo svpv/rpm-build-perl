@@ -1,3 +1,12 @@
+* Thu Sep 06 2007 Alexey Tourbin <at@altlinux> 0.6.4-alt1
+- made a few fixes for a special case `use Module 0==0', which is
+  internally translated into `Module->import(PL_sv_yes)' and should
+  yield `perl(Module) >= 1.0' dependency; this also fixes a regression
+  introduced in previous release
+- B/PerlReq.pm: in $SIG{__DIE__} handler, resort to Carp::cluck() without
+  checking $^S (checking $^S is unreliable since O.pm uses eval)
+- resolved some test suite issues (hopefully should pass on perl-5.9.5)
+
 * Fri Aug 17 2007 Alexey Tourbin <at@altlinux> 0.6.3-alt1
 - perl.req.files: fixed "text" pattern for file(1)
 - B/PerlReq.pm: fixed bug in prevDepF logic
