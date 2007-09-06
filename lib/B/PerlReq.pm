@@ -230,10 +230,18 @@ sub grok_method ($) { # class->method(args)
 	$op = $op->sibling;
 	while ($$op and $op->name eq "const") {
 		my $sv = const_sv($op);
-		my $arg = sv_version($sv);
+		my $arg;
+		unless (@args) {
+			# the first arg is possibly a version
+			$arg = sv_version($sv);
+		}
 		unless (defined $arg) {
-			last unless $sv->can("PV");
-			$arg = $sv->PV;
+			# dereference sv value
+			# XXX requires perl >= 5.8.1
+			if ($sv->can("object_2svref")) {
+				my $rv = $sv->object_2svref;
+				$arg = $$rv if ref $rv;
+			}
 		}
 		push @args, $arg;
 		$op = $op->sibling;
