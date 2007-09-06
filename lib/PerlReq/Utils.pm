@@ -115,12 +115,14 @@ according to Perl rules, e.g. I<1.2.3> -> I<1.002003>.
 
 sub sv_version ($) {
 	my $sv = shift;
-	use B qw(SVf_IOK SVf_NOK);
-	if ($sv->FLAGS & SVf_IOK) {
-		return $sv->int_value;
-	}
-	if ($sv->FLAGS & SVf_NOK) {
-		return $sv->NV;
+	if ($sv->can("FLAGS")) {
+		use B qw(SVf_IOK SVf_NOK);
+		if ($sv->FLAGS & SVf_IOK) {
+			return $sv->int_value;
+		}
+		if ($sv->FLAGS & SVf_NOK) {
+			return $sv->NV;
+		}
 	}
 	if ($sv->can("MAGIC")) {
 		for (my $mg = $sv->MAGIC; $mg; $mg = $mg->MOREMAGIC) {
