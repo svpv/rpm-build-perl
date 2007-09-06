@@ -201,6 +201,14 @@ sub grok_import ($$@) {
 		check_encoding($args[0]) if $args[0] =~ /^[^:]/;
 		Requires("Filter/Util/Call.pm") if grep { $_ eq "Filter" } @args;
 	}
+	else {
+		# the first import arg is possibly a version
+		my $v = $args[0];
+		if ($v > 0 and (0 + $v) eq $v) {
+			my $f = mod2path($class);
+			Requires($f, $v);
+		}
+	}
 }
 
 sub grok_version ($$@) {
