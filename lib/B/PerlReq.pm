@@ -389,6 +389,7 @@ sub compile {
 		$| = 1;
 		local $SIG{__DIE__} = sub {
 			# checking $^S is unreliable because O.pm uses eval
+			print STDERR "dying at $0 line $CurLine\n";
 			require Carp;
 			Carp::cluck();
 		};
