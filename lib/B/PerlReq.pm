@@ -12,7 +12,7 @@
 #	and micro hacks.
 
 package B::PerlReq;
-our $VERSION = "0.6.3";
+our $VERSION = "0.6.4";
 
 use 5.006;
 use strict;
@@ -189,6 +189,14 @@ sub grok_import ($$@) {
 		check_encoding($args[0]) if $args[0] =~ /^[^:]/;
 		Requires("Filter/Util/Call.pm") if grep { $_ eq "Filter" } @args;
 	}
+	else {
+		# the first import arg is possibly a version
+		my $v = $args[0];
+		if ($v > 0 and (0 + $v) eq $v) {
+			my $f = mod2path($class);
+			Requires($f, $v);
+		}
+	}
 }
 
 sub grok_version ($$@) {
@@ -218,10 +226,28 @@ sub grok_method ($) { # class->method(args)
 	$op = $op->sibling;
 	while ($$op and $op->name eq "const") {
 		my $sv = const_sv($op);
-		my $arg = sv_version($sv);
+		my $arg;
+		unless (@args) {
+			# the first arg is possibly a version
+			$arg = sv_version($sv);
+		}
 		unless (defined $arg) {
-			last unless $sv->can("PV");
-			$arg = $sv->PV;
+			# dereference sv value
+			if ($sv->can("object_2svref")) {
+				my $rv = $sv->object_2svref;
+				$arg = $$rv if ref $rv;
+			}
+			# object_2svref is new to perl >= 5.8.1
+			# try to save constants for older perls
+			elsif ($sv->can("PV")) {
+				$arg = $sv->PV;
+			}
+			elsif ($sv->can("NV")) {
+				$arg = $sv->NV;
+			}
+			elsif ($sv->can("int_value")) {
+				$arg = $sv->int_value;
+			}
 		}
 		push @args, $arg;
 		$op = $op->sibling;
@@ -254,7 +280,10 @@ sub compile {
 	return sub {
 		$| = 1;
 		local $SIG{__DIE__} = sub {
-			print STDERR "dying at $0 line $B::Walker::Line\n" unless $^S;
+			# checking $^S is unreliable because O.pm uses eval
+			print STDERR "dying at $0 line $B::Walker::Line\n";
+			require Carp;
+			Carp::cluck();
 		};
 		B::Walker::walk_blocks();
 		B::Walker::walk_main();

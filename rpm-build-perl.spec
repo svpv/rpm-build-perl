@@ -1,5 +1,5 @@
 Name: rpm-build-perl
-Version: 0.6.3
+Version: 0.6.4
 Release: alt1
 
 Summary: RPM helper scripts to calculate Perl dependencies
@@ -54,6 +54,15 @@ cp -p macros.env %buildroot/etc/rpm/macros.d/perl5.env
 %config /etc/rpm/macros.d/perl5.env
 
 %changelog
+* Thu Sep 06 2007 Alexey Tourbin <at@altlinux.ru> 0.6.4-alt1
+- made a few fixes for a special case `use Module 0==0', which is
+  internally translated into `Module->import(PL_sv_yes)' and should
+  yield `perl(Module) >= 1.0' dependency; this also fixes a regression
+  introduced in previous release
+- B/PerlReq.pm: in $SIG{__DIE__} handler, resort to Carp::cluck() without
+  checking $^S (checking $^S is unreliable since O.pm uses eval)
+- resolved some test suite issues (hopefully should pass on perl-5.9.5)
+
 * Fri Aug 17 2007 Alexey Tourbin <at@altlinux.ru> 0.6.3-alt1
 - perl.req.files: fixed "text" pattern for file(1)
 - B/PerlReq.pm: fixed bug in prevDepF logic
