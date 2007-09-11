@@ -117,15 +117,33 @@ bad:
 sub shebang_options {
 	my $fname = shift;
 	open my $fh, $fname or die "$0: $fname: $!\n";
-	my $shebang = <$fh>;
-	chomp $shebang;
+	local $_ = <$fh>;
 	my @argv;
-	if ($shebang =~ s/^#!\s*\S*perl\S*\s*// && $shebang) {
-		local $_ = $shebang;
+	if (s/^#!\s*\S*perl\S*//) {
 		foreach my $arg (split) {
 			last if $arg =~ /^#/;
 			next if $arg eq "--";
 			push @argv, $arg;
+		}
+	}
+	elsif (m[^#!\s*/bin/sh(\s|$)]) {
+		# check for "perl -x" re-exec hack
+		my $maybe_x;
+		while (<$fh>) {
+			# this is just a standard way to re-exec perl:
+			last if /^eval\s+'exec\s/;
+			if (/\bexec\s.*\bperl.*\s-x/) {
+				$maybe_x = 1;
+			}
+			elsif ($maybe_x and s/^#!\s*\S*perl\S*//) {
+				push @argv, "-x";
+				foreach my $arg (split) {
+					last if $arg =~ /^#/;
+					next if $arg eq "--";
+					push @argv, $arg;
+				}
+				last;
+			}
 		}
 	}
 	return @argv;
