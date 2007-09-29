@@ -3,7 +3,7 @@
 use strict;
 
 use Config qw(%Config);
-use PerlReq::Utils qw(argv inc explode verf mod2dep);
+use PerlReq::Utils qw(argv inc explode verf mod2dep path2dep);
 
 use autouse qw(Pod::Usage pod2usage);
 use Getopt::Long 2.24 qw(GetOptions :config gnu_getopt);
@@ -57,6 +57,9 @@ sub prereq_pm {
 # list of requires
 my %req;
 
+# modules outside established module path
+my %weak_prov;
+
 # process PRINT_PREREQ output
 my %prereq = prereq_pm();
 
@@ -66,6 +69,12 @@ process_file($_) foreach argv();
 sub process_file {
 	my $fname = shift;
 	my ($prefix, $basename) = explode($fname);
+
+	if (not $prefix and $fname =~ /\.p[lmh]$/) {
+		local $_ = $fname;
+		s#^\Q$ENV{RPM_BUILD_ROOT}\E/*##g if $ENV{RPM_BUILD_ROOT};
+		$weak_prov{path2dep($_)} = $fname while s#.+?/##;
+	}
 
 	if ($Method ne "strict" and $basename and grep { $basename =~ $_ } @Skip) {
 		warn "# $fname (builtin SKIP)\n";
@@ -218,6 +227,10 @@ sub do_deparse {
 
 # end
 foreach my $k (sort { uc($a) cmp uc($b) } keys %req) {
+	if ($weak_prov{$k}) {
+		warn "# $k internally povided by $weak_prov{$k}\n";
+		next;
+	}
 	my %ver = map { $_ ? %$_ : () } $req{$k}, $prereq{$k};
 	if (%ver) {
 		print "$k >= $_\n" foreach sort { $a <=> $b } keys %ver;
