@@ -1,5 +1,5 @@
 Name: rpm-build-perl
-Version: 0.6.4
+Version: 0.6.5
 Release: alt1
 
 Summary: RPM helper scripts to calculate Perl dependencies
@@ -15,7 +15,7 @@ Requires: perl(B.pm) perl(O.pm) perl(Safe.pm)
 Conflicts: rpm-build <= 4.0.4-alt24
 Conflicts: perl-devel <= 1:5.8.1-alt4
 
-# Automatically added by buildreq on Fri Aug 17 2007
+# Automatically added by buildreq on Sun Sep 30 2007
 BuildRequires: perl-Encode-JP perl-Encode-KR perl-Filter perl-devel
 
 %description
@@ -52,6 +52,11 @@ cp -p macros.env %buildroot/etc/rpm/macros.d/perl5.env
 %config /etc/rpm/macros.d/perl5.env
 
 %changelog
+* Sun Sep 30 2007 Alexey Tourbin <at@altlinux.ru> 0.6.5-alt1
+- perl.req: implemented support for "perl -x" re-exec hack (fixes cvs2cl.pl)
+- perl.req: implemented self-requires elimination for modules outside
+  established path, cf. ALT bug #7315
+
 * Thu Sep 06 2007 Alexey Tourbin <at@altlinux.ru> 0.6.4-alt1
 - made a few fixes for a special case `use Module 0==0', which is
   internally translated into `Module->import(PL_sv_yes)' and should

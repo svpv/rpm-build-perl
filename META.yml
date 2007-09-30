@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:                rpm-build-perl
-version:             0.6.4
+version:             0.6.5
 abstract:            Calculate dependencies for Perl sources
 license:             ~
 generated_by:        ExtUtils::MakeMaker version 6.32
