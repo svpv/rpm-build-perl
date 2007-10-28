@@ -18,8 +18,8 @@ sub install {
 	return $self->SUPER::install(@_) . <<'EOF';
 
 perl.prov.files: perl.req.files
-	$(PERL) -pe 's/requires/provides/g; s/req/prov/g' $< >$@
-	$(CHMOD) $(PERM_RWX) $@
+	$(PERL) -pe 's/requires/provides/g; s/req/prov/g' perl.req.files >perl.prov.files
+	$(CHMOD) $(PERM_RWX) perl.prov.files
 
 Changes: rpm-build-perl.spec
 	rpmquery --specfile $< --changelog | $(PERL) -ne \
