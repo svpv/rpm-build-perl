@@ -13,23 +13,30 @@
 
 while IFS=$'\t' read -r f t; do
 	case "$t" in
+		# shortcut check for perl scripts
 		*"perl script text"*)
-			echo "$f"; continue ;;
-		*"Perl5 module source text"*)
-			# still check suffix
-			;;
-		*" text"*)
-			;;
-		*)
+			echo "$f"
+			continue ;;
+		# symbolic links not needed here?
+		*"symbolic link to "*)
 			continue ;;
 	esac
 	case "$f" in
-		*.pm)
-			echo "$f"; continue ;;
-		*.pl)
-			# XXX extra check needed
-			echo "$f"; continue ;;
-		*.ph)
-			echo "$f"; continue ;;
+		*.pm | *.pl | *.ph ) ;;
+		*) continue ;;
+	esac
+	case "$t" in
+		*" text"*)
+			echo "$f" ;;
+		# file(1) check for text files is not quite reliable
+		# I use perl for '-T $f' heuristic check (see perlfunc for details)
+		*)
+			if perl -e '$f=shift; exit( -T $f ? 0 : 1 )' "$f"; then
+				echo "${0##*/}: $f: $t (PASS)" >&2
+				echo "$f"
+			else
+				echo "${0##*/}: $f: $t (IGNORE)" >&2
+			fi
+			;;
 	esac
 done
