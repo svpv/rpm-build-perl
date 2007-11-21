@@ -35,7 +35,6 @@ sub Requires ($$) {
 
 # Valid for perl-5.8.0 - perl-5.8.9.
 Requires "AutoLoader.pm"	=> "perl-base >= 1:5.6.1";
-Requires "constant.pm"		=> "perl(warnings/register.pm) perl-base >= 1:5.6.0";
 Requires "Exporter.pm"		=> "perl(Exporter/Heavy.pm) perl-base >= 1:5.6.0";
 Requires "File/Basename.pm" 	=> "perl(re.pm) perl(warnings.pm) perl-base >= 1:5.6.0";
 Requires "IO/File.pm"		=> "perl(File/Spec.pm) perl(IO/Seekable.pm) perl(SelectSaver.pm) perl(Symbol.pm) perl-base >= 1:5.6.1";
