@@ -249,9 +249,11 @@ sub isPerl {
 	my $fname = shift;
 	chomp $fname;
 	open(FILE, $fname) || die "$0: $fname: $!\n";
+	warn "# checking if $fname is perl source\n" if $Verbose;
+# shortcut for non-text files
+	return -1 unless -T FILE;
 	local $_ = join "" => <FILE>;
 	close FILE;
-	warn "# checking if $fname is perl source\n" if $Verbose;
 	my ($n, @n);
 
 # POSITIVE
@@ -281,10 +283,6 @@ sub isPerl {
 	$n += @n;
 
 # NEGATIVE
-# non-ascii characters
-	@n = /[^[:ascii:]]/g;
-	count @n, "non-ascii characters";
-	$n -= @n;
 # prolog
 	@n = /:-/g;
 	count @n, "prolog :- operators";
