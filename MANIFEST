@@ -9,6 +9,7 @@ lib/B/PerlReq.pm
 lib/PerlReq/Utils.pm
 perl.prov
 perl.req
+perl.prov.files
 perl.req.files
 perl5-alt-rpm-macros
 macros.env
