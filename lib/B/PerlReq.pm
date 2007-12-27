@@ -204,7 +204,7 @@ sub grok_import ($$@) {
 	else {
 		# the first import arg is possibly a version
 		my $v = $args[0];
-		if ($v > 0 and (0 + $v) eq $v) {
+		if ($v =~ /^\d/ and $v > 0 and (0 + $v) eq $v) {
 			my $f = mod2path($class);
 			Requires($f, $v);
 		}
