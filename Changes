@@ -1,3 +1,6 @@
+* Sat Mar 01 2008 Alexey Tourbin <at@altlinux> 0.6.7-alt1
+- B/PerlReq.pm (grok_import): silence numerical warning
+
 * Wed Nov 21 2007 Alexey Tourbin <at@altlinux> 0.6.6-alt1
 - perl.req (isPerl): use plain -T test instead of non-ascii char counter
 - perl.{req,prov}.files: use perl's -T test to recheck non-text files
