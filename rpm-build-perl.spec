@@ -1,5 +1,5 @@
 Name: rpm-build-perl
-Version: 0.6.7
+Version: 0.6.8
 Release: alt1
 
 Summary: RPM helper scripts to calculate Perl dependencies
@@ -15,7 +15,7 @@ Requires: perl(B.pm) perl(O.pm) perl(Safe.pm)
 Conflicts: rpm-build <= 4.0.4-alt24
 Conflicts: perl-devel <= 1:5.8.1-alt4
 
-# Automatically added by buildreq on Sat Mar 01 2008
+# Automatically added by buildreq on Fri May 09 2008
 BuildRequires: perl-Encode-JP perl-Encode-KR perl-Filter perl-devel
 
 %description
@@ -52,6 +52,9 @@ cp -p macros.env %buildroot/etc/rpm/macros.d/perl5.env
 %config /etc/rpm/macros.d/perl5.env
 
 %changelog
+* Fri May 09 2008 Alexey Tourbin <at@altlinux.ru> 0.6.8-alt1
+- perl.prov: try to detect block-level packages, fixes MP3/Tag.pm version
+
 * Sat Mar 01 2008 Alexey Tourbin <at@altlinux.ru> 0.6.7-alt1
 - B/PerlReq.pm (grok_import): silence numerical warning
 

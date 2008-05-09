@@ -1,3 +1,6 @@
+* Fri May 09 2008 Alexey Tourbin <at@altlinux> 0.6.8-alt1
+- perl.prov: try to detect block-level packages, fixes MP3/Tag.pm version
+
 * Sat Mar 01 2008 Alexey Tourbin <at@altlinux> 0.6.7-alt1
 - B/PerlReq.pm (grok_import): silence numerical warning
 

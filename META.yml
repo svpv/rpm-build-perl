@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:                rpm-build-perl
-version:             0.6.7
+version:             0.6.8
 abstract:            Calculate dependencies for Perl sources
 license:             ~
 author:              
