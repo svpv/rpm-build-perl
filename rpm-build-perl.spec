@@ -1,6 +1,6 @@
 Name: rpm-build-perl
 Version: 0.6.8
-Release: alt1
+Release: alt2
 
 Summary: RPM helper scripts to calculate Perl dependencies
 License: GPL
@@ -52,6 +52,9 @@ cp -p macros.env %buildroot/etc/rpm/macros.d/perl5.env
 %config /etc/rpm/macros.d/perl5.env
 
 %changelog
+* Tue Mar 24 2009 Alexey Tourbin <at@altlinux.ru> 0.6.8-alt2
+- macros (_perl_vendor_check_dso): gcc -Wl,--no-as-needed
+
 * Fri May 09 2008 Alexey Tourbin <at@altlinux.ru> 0.6.8-alt1
 - perl.prov: try to detect block-level packages, fixes MP3/Tag.pm version
 
