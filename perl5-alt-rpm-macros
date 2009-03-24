@@ -58,7 +58,7 @@ _perl_vendor_check_dso() { \
 	BLIBS="$BLIBS${BLIBS:+ }$(find $PWD/blib -type f -name '*.so' ||:)" \
 	[ -n "$BLIBS" ] || return 0 \
 	echo 'int main(){return 0;}' >ldtest.c \
-	gcc ldtest.c ${LD_LIBRARY_PATH:+-L$LD_LIBRARY_PATH} -lperl $BLIBS $EXTRA_BLIBS \
+	gcc -Wl,--no-as-needed ldtest.c ${LD_LIBRARY_PATH:+-L$LD_LIBRARY_PATH} -lperl $BLIBS $EXTRA_BLIBS \
 	LD_BIND_NOW=1 ./a.out \
 	rm -f ldtest.c ./a.out \
 } \
