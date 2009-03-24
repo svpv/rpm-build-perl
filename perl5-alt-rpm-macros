@@ -71,7 +71,7 @@ perl_vendor_build() { \
 	else \
 		_perl_vendor_MM_build "$@" \
 	fi \
-		_perl_vendor_check_dso \
+		#_perl_vendor_check_dso \
 } \
 perl_vendor_build
 
