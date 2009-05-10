@@ -7,20 +7,11 @@
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
 #
-# This is /usr/lib/rpm/find-requires filter.  It reads << file -NF$'\t' >>
-# output and decides which files should be processed with perl.req.
+# This is /usr/lib/rpm/find-provides filter.  It reads << file -NF$'\t' >>
+# output and decides which files should be processed with perl.prov.
 #
 
 while IFS=$'\t' read -r f t; do
-	case "$t" in
-		# shortcut check for perl scripts
-		*"perl script text"*)
-			echo "$f"
-			continue ;;
-		# symbolic links not needed here?
-		*"symbolic link to "*)
-			continue ;;
-	esac
 	case "$f" in
 		*.pm | *.pl | *.ph ) ;;
 		*) continue ;;

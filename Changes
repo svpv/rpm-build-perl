@@ -1,3 +1,18 @@
+* Fri May 09 2008 Alexey Tourbin <at@altlinux> 0.6.8-alt1
+- perl.prov: try to detect block-level packages, fixes MP3/Tag.pm version
+
+* Sat Mar 01 2008 Alexey Tourbin <at@altlinux> 0.6.7-alt1
+- B/PerlReq.pm (grok_import): silence numerical warning
+
+* Wed Nov 21 2007 Alexey Tourbin <at@altlinux> 0.6.6-alt1
+- perl.req (isPerl): use plain -T test instead of non-ascii char counter
+- perl.{req,prov}.files: use perl's -T test to recheck non-text files
+
+* Sun Sep 30 2007 Alexey Tourbin <at@altlinux> 0.6.5-alt1
+- perl.req: implemented support for "perl -x" re-exec hack (fixes cvs2cl.pl)
+- perl.req: implemented self-requires elimination for modules outside
+  established path, cf. ALT bug #7315
+
 * Thu Sep 06 2007 Alexey Tourbin <at@altlinux> 0.6.4-alt1
 - made a few fixes for a special case `use Module 0==0', which is
   internally translated into `Module->import(PL_sv_yes)' and should

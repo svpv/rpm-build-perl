@@ -49,7 +49,7 @@ sub process_file {
 		warn "# $fname has basename $basename (SKIP)\n";
 		return;
 	}
-	my $cur_pkg = "main";
+	my $cur_pkg = my $pkg0 = "main"; my $pkg1;
 	my $re_pkg = qr/\b\w+(?:::\w+)*/;
 	open my $fh, $fname or die "$0: $fname: $!\n";
 	local $_;
@@ -59,10 +59,23 @@ sub process_file {
 		next if /^=\w/ .. (/^=cut/ or eof);
 		last if /^__(DATA|END)__\b/;
 		s/\s+#\s.*//; # strip comments
-		if (/^\s*\{?\s*package\s+($re_pkg)\s*;/) {
-			$cur_pkg = $1;
+		if (/^(\s*\{?\s*)package\s+($re_pkg)\s*;/) {
+			if ($1) {
+				# block package
+				$cur_pkg = $pkg1 = $2;
+			}
+			else {
+				# toplevel package
+				$cur_pkg = $pkg0 = $2;
+				undef $pkg1;
+			}
 			warn "# package $cur_pkg at $fname line $.\n" if $Verbose > 1;
 			next;
+		}
+		elsif (/^}/ && $pkg1) {
+			warn "# back from $pkg1 to $pkg0 at $fname line $.\n" if $Verbose > 1;
+			$cur_pkg = $pkg0;
+			undef $pkg1;
 		}
 		/\$(?:($re_pkg)::)?VERSION\s*\)?\s*=/ or next;
 		# it's a version assignemnt
@@ -216,7 +229,7 @@ with contributions from Mikhail Zabaluev <mhz@altlinux.org>.
 
 =head1	COPYING
 
-Copyright (c) 2003, 2004 Alexey Tourbin, ALT Linux Team.
+Copyright (c) 2003, 2004, 2006, 2007, 2008 Alexey Tourbin, ALT Linux Team.
 
 This is free software; you can redistribute it and/or modify it under
 the terms of the GNU Library General Public License as published by the

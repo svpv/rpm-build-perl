@@ -17,10 +17,6 @@ sub install {
 	my $self = shift;
 	return $self->SUPER::install(@_) . <<'EOF';
 
-perl.prov.files: perl.req.files
-	$(PERL) -pe 's/requires/provides/g; s/req/prov/g' $< >$@
-	$(CHMOD) $(PERM_RWX) $@
-
 Changes: rpm-build-perl.spec
 	rpmquery --specfile $< --changelog | $(PERL) -ne \
 	's/\@altlinux[^>]*>/\@altlinux>/g; last if /^\* .+ 0\.3/; next if /^\Z/; print "\n" if /^\* / && $$.>1; print' >$@

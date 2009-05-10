@@ -1,9 +1,11 @@
 --- #YAML:1.0
 name:                rpm-build-perl
-version:             0.6.4
+version:             0.6.8
 abstract:            Calculate dependencies for Perl sources
 license:             ~
-generated_by:        ExtUtils::MakeMaker version 6.32
+author:              
+    - Alexey Tourbin <at@altlinux.org>
+generated_by:        ExtUtils::MakeMaker version 6.42
 distribution_type:   module
 requires:     
     B:                             0
@@ -12,7 +14,5 @@ requires:
     Safe:                          0
     Test::More:                    0
 meta-spec:
-    url:     http://module-build.sourceforge.net/META-spec-v1.2.html
-    version: 1.2
-author:
-    - Alexey Tourbin <at@altlinux.org>
+    url:     http://module-build.sourceforge.net/META-spec-v1.3.html
+    version: 1.3

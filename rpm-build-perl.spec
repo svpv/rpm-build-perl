@@ -1,6 +1,6 @@
 Name: rpm-build-perl
-Version: 0.6.4
-Release: alt1
+Version: 0.6.8
+Release: alt3
 
 Summary: RPM helper scripts to calculate Perl dependencies
 License: GPL
@@ -15,7 +15,7 @@ Requires: perl(B.pm) perl(O.pm) perl(Safe.pm)
 Conflicts: rpm-build <= 4.0.4-alt24
 Conflicts: perl-devel <= 1:5.8.1-alt4
 
-# Automatically added by buildreq on Fri Aug 17 2007
+# Automatically added by buildreq on Fri May 09 2008
 BuildRequires: perl-Encode-JP perl-Encode-KR perl-Filter perl-devel
 
 %description
@@ -54,6 +54,27 @@ cp -p macros.env %buildroot/etc/rpm/macros.d/perl5.env
 %config /etc/rpm/macros.d/perl5.env
 
 %changelog
+* Tue Mar 24 2009 Alexey Tourbin <at@altlinux.ru> 0.6.8-alt3
+- macros (_perl_vendor_check_dso): disabled this check
+
+* Tue Mar 24 2009 Alexey Tourbin <at@altlinux.ru> 0.6.8-alt2
+- macros (_perl_vendor_check_dso): gcc -Wl,--no-as-needed
+
+* Fri May 09 2008 Alexey Tourbin <at@altlinux.ru> 0.6.8-alt1
+- perl.prov: try to detect block-level packages, fixes MP3/Tag.pm version
+
+* Sat Mar 01 2008 Alexey Tourbin <at@altlinux.ru> 0.6.7-alt1
+- B/PerlReq.pm (grok_import): silence numerical warning
+
+* Wed Nov 21 2007 Alexey Tourbin <at@altlinux.ru> 0.6.6-alt1
+- perl.req (isPerl): use plain -T test instead of non-ascii char counter
+- perl.{req,prov}.files: use perl's -T test to recheck non-text files
+
+* Sun Sep 30 2007 Alexey Tourbin <at@altlinux.ru> 0.6.5-alt1
+- perl.req: implemented support for "perl -x" re-exec hack (fixes cvs2cl.pl)
+- perl.req: implemented self-requires elimination for modules outside
+  established path, cf. ALT bug #7315
+
 * Thu Sep 06 2007 Alexey Tourbin <at@altlinux.ru> 0.6.4-alt1
 - made a few fixes for a special case `use Module 0==0', which is
   internally translated into `Module->import(PL_sv_yes)' and should
