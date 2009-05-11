@@ -1,6 +1,6 @@
 Name: rpm-build-perl
-Version: 0.6.8
-Release: alt3
+Version: 0.70
+Release: alt1
 
 Summary: RPM helper scripts to calculate Perl dependencies
 License: GPL
@@ -54,6 +54,12 @@ cp -p macros.env %buildroot/etc/rpm/macros.d/perl5.env
 %config /etc/rpm/macros.d/perl5.env
 
 %changelog
+* Mon May 11 2009 Alexey Tourbin <at@altlinux.ru> 0.70-alt1
+- B/Walker.pm: new module, implements optree traversal
+- B/Clobbers.pm: new experimental module, for checking global variables
+- PerlReq/Utils.pm: updated version formatting algorithm for better precision;
+  the most general version format for rpm dependencies is now d.ddd.ddd
+
 * Tue Mar 24 2009 Alexey Tourbin <at@altlinux.ru> 0.6.8-alt3
 - macros (_perl_vendor_check_dso): disabled this check
 

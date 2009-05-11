@@ -1,3 +1,15 @@
+* Mon May 11 2009 Alexey Tourbin <at@altlinux> 0.70-alt1
+- B/Walker.pm: new module, implements optree traversal
+- B/Clobbers.pm: new experimental module, for checking global variables
+- PerlReq/Utils.pm: updated version formatting algorithm for better precision;
+  the most general version format for rpm dependencies is now d.ddd.ddd
+
+* Tue Mar 24 2009 Alexey Tourbin <at@altlinux> 0.6.8-alt3
+- macros (_perl_vendor_check_dso): disabled this check
+
+* Tue Mar 24 2009 Alexey Tourbin <at@altlinux> 0.6.8-alt2
+- macros (_perl_vendor_check_dso): gcc -Wl,--no-as-needed
+
 * Fri May 09 2008 Alexey Tourbin <at@altlinux> 0.6.8-alt1
 - perl.prov: try to detect block-level packages, fixes MP3/Tag.pm version
 

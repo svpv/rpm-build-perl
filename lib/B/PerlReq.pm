@@ -12,7 +12,7 @@
 #	and micro hacks.
 
 package B::PerlReq;
-our $VERSION = "0.6.8";
+our $VERSION = '0.70';
 
 use 5.006;
 use strict;
