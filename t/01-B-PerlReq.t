@@ -62,20 +62,20 @@ cmp_ok $d2, 'eq', grok qq(eval { eval { require $m; }; require $m; }; require $m
 cmp_ok $d2, 'eq', grok qq(eval { require $m; } || eval { require $m3; }; require $m2;);
 cmp_ok $d2, 'eq', grok qq(require $m2; eval { $m2->VERSION(0.1); };);
 
-cmp_ok "$d >= 2.0",	'eq', grok qq(use $m 2;);
-cmp_ok "$d >= 2.0",	'eq', grok qq(use $m 2.0;);
-cmp_ok "$d >= 2.0",	'eq', grok qq(use $m 2.00;);
-cmp_ok "$d >= 2.0",	'eq', grok qq(use $m 2.000998;);
-cmp_ok "$d >= 2.001",	'eq', grok qq(use $m 2.000999;);
-cmp_ok "$d >= 2.010",	'eq', grok qq(use $m 2.01;);
-cmp_ok "$d >= 2.012",	'eq', grok qq(use $m 2.012;);
-cmp_ok "$d >= 2.019",	'eq', grok qq(use $m 2.0199;);
-cmp_ok "$d >= 2.0",	'eq', grok qq(use $m v2;);
-cmp_ok "$d >= 2.0",	'eq', grok qq(use $m v2.0;);
-cmp_ok "$d >= 2.0",	'eq', grok qq(use $m v2.0.998;);
-cmp_ok "$d >= 2.001",	'eq', grok qq(use $m v2.0.999;);
-cmp_ok "$d >= 2.001",	'eq', grok qq(use $m 2.1.1;);
-cmp_ok "$d >= 2.001",	'eq', grok qq(use $m v2.1.1;);
+cmp_ok "$d >= 2.0",		'eq', grok qq(use $m 2;);
+cmp_ok "$d >= 2.0",		'eq', grok qq(use $m 2.0;);
+cmp_ok "$d >= 2.0",		'eq', grok qq(use $m 2.00;);
+cmp_ok "$d >= 2.0.998",		'eq', grok qq(use $m 2.000998;);
+cmp_ok "$d >= 2.001",		'eq', grok qq(use $m 2.0009999;);
+cmp_ok "$d >= 2.010",		'eq', grok qq(use $m 2.01;);
+cmp_ok "$d >= 2.012",		'eq', grok qq(use $m 2.012;);
+cmp_ok "$d >= 2.019.900",	'eq', grok qq(use $m 2.0199;);
+cmp_ok "$d >= 2.0",		'eq', grok qq(use $m v2;);
+cmp_ok "$d >= 2.0",		'eq', grok qq(use $m v2.0;);
+cmp_ok "$d >= 2.0.998",		'eq', grok qq(use $m v2.0.998;);
+cmp_ok "$d >= 2.0.999",		'eq', grok qq(use $m v2.0.999;);
+cmp_ok "$d >= 2.001.001",	'eq', grok qq(use $m 2.1.1;);
+cmp_ok "$d >= 2.001.001",	'eq', grok qq(use $m v2.1.1;);
 
 cmp_ok "perl(base.pm)\n$d",		'eq', grok qq(use base qw($m););
 cmp_ok "perl(base.pm) >= 1.0\n$d",	'eq', grok qq(use base 1 qw($m););
