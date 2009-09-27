@@ -1,3 +1,6 @@
+* Sun Sep 27 2009 Alexey Tourbin <at@altlinux> 0.71-alt1
+- PerlReq/Utils.pm: fixed RPM_PERL_LIB_PATH for whitespaces (ALT#21701)
+
 * Mon May 11 2009 Alexey Tourbin <at@altlinux> 0.70-alt1
 - B/Walker.pm: new module, implements optree traversal
 - B/Clobbers.pm: new experimental module, for checking global variables

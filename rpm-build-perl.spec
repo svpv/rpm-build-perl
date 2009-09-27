@@ -1,5 +1,5 @@
 Name: rpm-build-perl
-Version: 0.70
+Version: 0.71
 Release: alt1
 
 Summary: RPM helper scripts to calculate Perl dependencies
@@ -54,6 +54,9 @@ cp -p macros.env %buildroot/etc/rpm/macros.d/perl5.env
 %config /etc/rpm/macros.d/perl5.env
 
 %changelog
+* Sun Sep 27 2009 Alexey Tourbin <at@altlinux.ru> 0.71-alt1
+- PerlReq/Utils.pm: fixed RPM_PERL_LIB_PATH for whitespaces (ALT#21701)
+
 * Mon May 11 2009 Alexey Tourbin <at@altlinux.ru> 0.70-alt1
 - B/Walker.pm: new module, implements optree traversal
 - B/Clobbers.pm: new experimental module, for checking global variables
