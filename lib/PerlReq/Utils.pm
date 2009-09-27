@@ -183,7 +183,7 @@ sub inc {
 	return @inc if @inc;
 	my $root = $ENV{RPM_BUILD_ROOT}; $root &&= rel2abs($root);
 	unshift @inc, map rel2abs($_), grep $_ ne ".", @INC;
-	unshift @inc, map rel2abs($_), $ENV{RPM_PERL_LIB_PATH} =~ /([^:]+)/g;
+	unshift @inc, map rel2abs($_), $ENV{RPM_PERL_LIB_PATH} =~ /([^:\s]+)/g;
 	unshift @inc, map "$root$_", @inc if $root;
 	return @inc = grep -d, @inc;
 }
