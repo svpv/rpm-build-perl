@@ -1,3 +1,6 @@
+* Tue Apr 20 2010 Alexey Tourbin <at@altlinux> 0.72-alt1
+- B/PerlReq.pm: implemented support for Moose::with()
+
 * Sun Sep 27 2009 Alexey Tourbin <at@altlinux> 0.71-alt1
 - PerlReq/Utils.pm: fixed RPM_PERL_LIB_PATH for whitespaces (ALT#21701)
 

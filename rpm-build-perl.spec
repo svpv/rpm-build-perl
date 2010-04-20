@@ -1,5 +1,5 @@
 Name: rpm-build-perl
-Version: 0.71
+Version: 0.72
 Release: alt1
 
 Summary: RPM helper scripts to calculate Perl dependencies
@@ -54,6 +54,9 @@ cp -p macros.env %buildroot/etc/rpm/macros.d/perl5.env
 %config /etc/rpm/macros.d/perl5.env
 
 %changelog
+* Tue Apr 20 2010 Alexey Tourbin <at@altlinux.ru> 0.72-alt1
+- B/PerlReq.pm: implemented support for Moose::with()
+
 * Sun Sep 27 2009 Alexey Tourbin <at@altlinux.ru> 0.71-alt1
 - PerlReq/Utils.pm: fixed RPM_PERL_LIB_PATH for whitespaces (ALT#21701)
 
