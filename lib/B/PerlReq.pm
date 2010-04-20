@@ -256,6 +256,28 @@ sub grok_method ($) { # class->method(args)
 	$methods{$method}->($class, $method, @args);
 }
 
+sub grok_gv {
+	return unless exists $INC{"Moose.pm"};
+
+	my $op = shift;
+	return unless $op->next->name eq "entersub";
+
+	use B::Walker qw(padval);
+	return unless padval($op->padix)->NAME eq "with";
+
+	$op = $op->next->first->first->sibling;
+
+	while ($$op and $op->name eq "const") {
+		my $sv = const_sv($op);
+		$op = $op->sibling;
+		next unless $sv->can("PV");
+		my $mod = $sv->PV;
+		next unless $mod =~ /^\w+(?:::\w+)+\z/;
+		my $f = mod2path($mod);
+		Requires($f);
+	}
+}
+
 %B::Walker::Ops = (
 	'require'	=> \&grok_require,
 	'dofile'	=> \&grok_require,
@@ -264,6 +286,7 @@ sub grok_method ($) { # class->method(args)
 	'binmode'	=> \&grok_perlio,
 	'dbmopen'	=> sub { Requires("AnyDBM_File.pm") },
 	'leavetry'	=> sub { $B::Walker::BlockData{Eval} = $B::Walker::Level },
+	'gv'		=> \&grok_gv,
 );
 
 sub compile {
