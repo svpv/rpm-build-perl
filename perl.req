@@ -5,7 +5,11 @@ use strict;
 use Config qw(%Config);
 use PerlReq::Utils qw(argv inc explode verf mod2dep path2dep);
 
-use autouse qw(Pod::Usage pod2usage);
+sub pod2usage {
+	eval { require Pod::Usage } or die $@;
+	goto &Pod::Usage::pod2usage;
+}
+
 use Getopt::Long 2.24 qw(GetOptions :config gnu_getopt);
 GetOptions
 	"m|method=s"	=> \my $Method,
