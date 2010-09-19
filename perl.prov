@@ -143,7 +143,7 @@ sub extract_version {
 	my ($fname, $line, $pkg) = @_;
 	warn "# extracting version at line $.:\n# $line\n" if $Verbose > 1;
 	my $code = "$line\n; \$VERSION";
-	$code =~ s/\$\Q$pkg\::VERSION/\$VERSION/g if $pkg;
+	$code =~ s/\$\Q$pkg\E::VERSION/\$VERSION/g if $pkg;
 
 	if ($code =~ s/\buse\s+version\b[^;]*;//g or $code =~ /\bqv\b/
 		or $code =~ /\bversion(?:::)?->new\b/ or $code =~ /\bnew\s+version\b/)
