@@ -1,5 +1,5 @@
 Name: rpm-build-perl
-Version: 0.72
+Version: 0.73
 Release: alt1
 
 Summary: RPM helper scripts to calculate Perl dependencies
@@ -54,6 +54,16 @@ cp -p macros.env %buildroot/etc/rpm/macros.d/perl5.env
 %config /etc/rpm/macros.d/perl5.env
 
 %changelog
+* Mon Sep 20 2010 Alexey Tourbin <at@altlinux.ru> 0.73-alt1
+- updated for perl-5.12:
+- perl.req, perl.prov: relax dependency on Pod::Usage
+- perl.prov: use plain eval insted of Safe->reval
+- perl.prov: \Q stopped working without closing \E
+- macros: removed UNINST=undef
+- macros: removed OTHERLDFLAGS='-lperl -lpthread'
+- macros: removed INSTALLMAN1DIR= and INSTALLMAN3DIR=
+- macros: removed %%perl_vendor_man1dir and %%perl_vendor_man3dir
+
 * Tue Apr 20 2010 Alexey Tourbin <at@altlinux.ru> 0.72-alt1
 - B/PerlReq.pm: implemented support for Moose::with()
 
