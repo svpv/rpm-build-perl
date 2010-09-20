@@ -14,10 +14,6 @@
 %perl_vendorarch	%perl_vendor_archlib
 %makeinstall_std	%make_install install DESTDIR=%buildroot
 
-# mandirs
-%perl_vendor_man1dir	%_man1dir
-%perl_vendor_man3dir	%_man3dir
-
 # build with the same optimization as perl
 %perl_vendor_optflags	%(eval "`%__perl -V:optimize`"; echo "$optimize")
 
