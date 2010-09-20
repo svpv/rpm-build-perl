@@ -82,7 +82,7 @@ _perl_vendor_MB_install() { \
 } \
 _perl_vendor_MM_install() { \
 	: installing \
-	%make_install UNINST=undef CP="%__cp -p" \\\
+	%make_install CP="%__cp -p" \\\
 		DESTDIR=%buildroot PREFIX=%_prefix INSTALLDIRS=vendor \\\
 		INSTALLMAN1DIR=%buildroot%perl_vendor_man1dir \\\
 		INSTALLMAN3DIR=%buildroot%perl_vendor_man3dir \\\
