@@ -99,7 +99,7 @@ sub walk_main () {
 sub walk_gv ($) {
 	my $gv = shift;
 	my $cv = $gv->CV;
-	return unless $$cv;
+	return unless ( $$cv && ref($cv) eq "B::CV" );
 	return if $cv->XSUB;
 	local $Sub = $gv->SAFENAME;
 	$Line = $gv->LINE;
