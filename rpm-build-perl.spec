@@ -1,6 +1,6 @@
 Name: rpm-build-perl
 Version: 0.73
-Release: alt1
+Release: alt2
 
 Summary: RPM helper scripts to calculate Perl dependencies
 License: GPL
@@ -54,6 +54,10 @@ cp -p macros.env %buildroot/etc/rpm/macros.d/perl5.env
 %config /etc/rpm/macros.d/perl5.env
 
 %changelog
+* Mon Nov 15 2010 Vladimir Lettiev <crux@altlinux.ru> 0.73-alt2
+- fixed fatal error in walk_gv() when method CV return not B::CV class
+  object (Closes: #24564)
+
 * Mon Sep 20 2010 Alexey Tourbin <at@altlinux.ru> 0.73-alt1
 - updated for perl-5.12:
 - perl.req, perl.prov: relax dependency on Pod::Usage
