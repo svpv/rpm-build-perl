@@ -39,6 +39,7 @@ our @Skip = (
 	qr(^Exporter\.pm$),
 	qr(^strict\.pm$),
 	qr(^vars\.pm$),
+	qr(^warnings\.pm$),
 );
 
 our ($Strict, $Relaxed, $Verbose, $Debug);
