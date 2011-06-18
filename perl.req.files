@@ -12,6 +12,10 @@
 #
 
 while IFS=$'\t' read -r f t; do
+	case "$f" in
+		*/auto/share/dist/*) continue ;;
+		*/auto/share/module/*) continue ;;
+	esac
 	case "$t" in
 		# shortcut check for perl scripts
 		*"perl script text"*)
