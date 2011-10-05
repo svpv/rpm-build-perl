@@ -50,7 +50,7 @@ sub RequiresPerl ($) {
 	my $v = shift;
 	my $dep = "perl-base >= " . verf_perl($v);
 	my $msg = "$dep at line $B::Walker::Line (depth $B::Walker::Level)";
-	if (not $Strict and $v < 5.006) {
+	if (not $Strict and $v < 5.010) {
 		print STDERR "# $msg old perl SKIP\n" if $Verbose;
 		return;
 	}
