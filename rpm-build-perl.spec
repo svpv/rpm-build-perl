@@ -1,5 +1,5 @@
 Name: rpm-build-perl
-Version: 0.74
+Version: 0.75
 Release: alt1
 
 Summary: RPM helper scripts to calculate Perl dependencies
@@ -54,6 +54,10 @@ cp -p macros.env %buildroot/etc/rpm/macros.d/perl5.env
 %config /etc/rpm/macros.d/perl5.env
 
 %changelog
+* Thu Oct 06 2011 Alexey Tourbin <at@altlinux.ru> 0.75-alt1
+- perl.{req,prov}.files: ignore */auto/share/{dist,module}/*
+- B/PerlReq.pm: bumped minimum autodep perl version 5.6 -> 5.10
+
 * Sat Feb 12 2011 Alexey Tourbin <at@altlinux.ru> 0.74-alt1
 - B/PerlReq.pm: added warnings.pm to @Skip list
 

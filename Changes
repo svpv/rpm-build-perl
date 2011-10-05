@@ -1,3 +1,7 @@
+* Thu Oct 06 2011 Alexey Tourbin <at@altlinux> 0.75-alt1
+- perl.{req,prov}.files: ignore */auto/share/{dist,module}/*
+- B/PerlReq.pm: bumped minimum autodep perl version 5.6 -> 5.10
+
 * Sat Feb 12 2011 Alexey Tourbin <at@altlinux> 0.74-alt1
 - B/PerlReq.pm: added warnings.pm to @Skip list
 
