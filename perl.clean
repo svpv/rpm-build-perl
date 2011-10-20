@@ -20,3 +20,6 @@ while read -r f; do
 	echo "    $f"
 	once=1
 done >&2
+
+find "$@" -type f -name perllocal.pod -exec \
+	rm -fv -- '{}' '+'
