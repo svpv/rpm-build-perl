@@ -33,10 +33,8 @@ sub Requires ($$) {
 	ok $? == 0, "$f zero exit status";
 }
 
-# Valid for perl-5.8.0 - perl-5.12.4.
+# Valid for perl-5.8.0 - perl-5.14.2.
 Requires "AutoLoader.pm"	=> "";
 Requires "Exporter.pm"		=> "perl(Exporter/Heavy.pm)";
 Requires "IO/File.pm"		=> "perl(File/Spec.pm) perl(IO/Seekable.pm) perl(SelectSaver.pm) perl(Symbol.pm)";
-Requires "File/Glob.pm"		=> "perl(Text/ParseWords.pm) perl(XSLoader.pm)";
-Requires "Socket.pm"		=> "perl(warnings/register.pm) perl(XSLoader.pm)";
 
