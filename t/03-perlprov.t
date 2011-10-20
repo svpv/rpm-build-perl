@@ -44,7 +44,7 @@ Provides "Exporter.pm"		=> "perl(Exporter.pm) = 5.";
 Provides "fields.pm"		=> "perl(fields.pm) = ";
 Provides "File/Basename.pm" 	=> "perl(File/Basename.pm) = 2.";
 Provides "Getopt/Long.pm"	=> "perl(Getopt/Long.pm) = 2.";
-Provides "getopts.pl"		=> "perl(getopts.pl)";
+Provides "dumpvar.pl"		=> "perl(dumpvar.pl)";
 Provides "Cwd.pm"		=> "perl(Cwd.pm) = ";
 Provides "Data/Dumper.pm"	=> "perl(Data/Dumper.pm) = 2.";
 Provides "IO/File.pm"		=> "perl(IO/File.pm) = 1.";
