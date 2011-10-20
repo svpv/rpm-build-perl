@@ -12,10 +12,11 @@ find "$@" -type f -name .packlist -print0 |
 find "$@" -type f -name \*.bs -size 0 -print0 |
 	xargs -r0 rm -vf --
 
-f="$(find "$@" -type f -name \*.bs)"
-if [ -n "$f" ]; then
-	echo "$PROG: non empty *.bs file(s) found:"
-	printf %s\\n "$f"
-	echo "$PROG: please contact packager"
-	exit 1
-fi
+once=
+find "$@" -type f -name \*.bs |
+while read -r f; do
+	[ -n "$once" ] ||
+	echo "WARNING: $PROG: non empty *.bs file(s) found:"
+	echo "    $f"
+	once=1
+done >&2
