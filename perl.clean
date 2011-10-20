@@ -6,11 +6,11 @@ cd "${RPM_BUILD_ROOT:?}"
 set -- ./usr/*/perl5/
 [ -d "$1" ] || exit 0
 
-find "$@" -type f -name .packlist -print0 |
-	xargs -r0 rm -vf --
+find "$@" -type f -name .packlist -exec \
+	rm -fv -- '{}' '+'
 
-find "$@" -type f -name \*.bs -size 0 -print0 |
-	xargs -r0 rm -vf --
+find "$@" -type f -name \*.bs -size 0 -exec \
+	rm -fv -- '{}' '+'
 
 once=
 find "$@" -type f -name \*.bs |
