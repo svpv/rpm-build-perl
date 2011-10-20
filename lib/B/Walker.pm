@@ -48,7 +48,7 @@ sub walk_root ($) {
 	local $Level = $Level + 1;
 	local %BlockData = %BlockData if $startblock{$name};
 	local $Opname = $name if $Ops{$name};
-	$Ops{$name}->($op) if $Ops{$name};
+	$Ops{$name}->($op) if $Ops{$name} and $Line;
 	walk_root($op->pmreplroot) if $ref eq "B::PMOP";
 	use B qw(OPf_KIDS);
 	if ($op->flags & OPf_KIDS) {
