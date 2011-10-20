@@ -5,7 +5,7 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
 	NAME => 'rpm-build-perl',
 	VERSION_FROM => 'lib/B/PerlReq.pm',
-	EXE_FILES => [ qw(perl.req perl.req.files perl.prov perl.prov.files) ],
+	EXE_FILES => [ qw(perl.req perl.req.files perl.prov perl.prov.files perl.clean) ],
 	PREREQ_PM => { B => 0, O => 0, Safe => 0, "Test::More" => 0, Encode => 0 },
 	AUTHOR => 'Alexey Tourbin <at@altlinux.org>',
 	ABSTRACT => 'Calculate dependencies for Perl sources',

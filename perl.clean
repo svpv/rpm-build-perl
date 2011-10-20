@@ -1,0 +1,21 @@
+#!/bin/sh -eu
+
+PROG="${0##*/}"
+cd "${RPM_BUILD_ROOT:?}"
+
+set -- ./usr/*/perl5/
+[ -d "$1" ] || exit 0
+
+find "$@" -type f -name .packlist -print0 |
+	xargs -r0 rm -vf --
+
+find "$@" -type f -name \*.bs -size 0 -print0 |
+	xargs -r0 rm -vf --
+
+f="$(find "$@" -type f -name \*.bs)"
+if [ -n "$f" ]; then
+	echo "$PROG: non empty *.bs file(s) found:"
+	printf %s\\n "$f"
+	echo "$PROG: please contact packager"
+	exit 1
+fi
