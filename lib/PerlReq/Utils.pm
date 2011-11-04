@@ -134,13 +134,25 @@ sub sv_version ($) {
 			return $v[0] + $v[1] / 1000 + $v[2] / 1000 / 1000;
 		}
 	}
-	if ($sv->can("PV")) {
-		my $v = $sv->PV;
-		if ($v =~ /^\s*\.?\d/) {
-			# This is WRONG:
-			# $v =~ s/_//g;
-			return $v + 0;
+	# handle version objects
+	my $vobj = ${$sv->object_2svref};
+	my $vnum;
+	if (ref($vobj) eq "version") {
+		$vnum = $vobj->numify;
+		$vnum =~ s/_//g;
+		return 0 + $vnum;
+	}
+	elsif ($sv->can("PV") and $sv->PV =~ /^[v.]?\d/) {
+		# upgrade quoted-string version to version object
+		require version;
+		$vobj = eval { version->parse($sv->PV) };
+		if ($@) {
+			warn $@;
+			return undef;
 		}
+		$vnum = $vobj->numify;
+		$vnum =~ s/_//g;
+		return 0 + $vnum;
 	}
 	return undef;
 }

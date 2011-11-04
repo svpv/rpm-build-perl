@@ -160,11 +160,6 @@ sub extract_version {
 	};
 	goto bad if not $version;
 
-	if (ref($version) =~ /\bversion\b/) {
-		bless $version, "version";
-		$version = $version->numify;
-	}
-
 	use B qw(svref_2object);
 	my $v = sv_version(svref_2object(\$version));
 	if ($v) {
