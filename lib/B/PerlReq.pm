@@ -230,7 +230,10 @@ sub grok_method ($) { # class->method(args)
 		my $arg;
 		unless (@args) {
 			# the first arg is possibly a version
-			$arg = sv_version($sv);
+			# but skip << use overload "0+" => ... >>
+			unless ("$class->$method" eq "overload->import") {
+				$arg = sv_version($sv);
+			}
 		}
 		unless (defined $arg) {
 			# dereference sv value
