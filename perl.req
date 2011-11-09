@@ -3,7 +3,7 @@
 use strict;
 
 use Config qw(%Config);
-use PerlReq::Utils qw(argv inc explode verf mod2dep path2dep);
+use PerlReq::Utils qw(argv inc explode mod2dep path2dep);
 
 sub pod2usage {
 	eval { require Pod::Usage } or die $@;
@@ -44,10 +44,17 @@ sub prereq_pm {
 		or return;
 	warn "# processing $dir/.perl.req\n" if $Verbose;
 	local $_ = join "" => grep /^perl[(]/ => <$fh>;
-	while (s/\bperl[(]([\w:]+)[)]>=([\d._]+)//) {
+	while (s/\bperl[(]([\w:]+)[)]>=([v\d._]+)//) {
 		my $dep = mod2dep($1);
-		my $ver = $2 ? verf($2) : undef;
+		my $ver = $2;
 		if ($ver) {
+			use B qw(svref_2object);
+			use PerlReq::Utils qw(sv_version);
+			$ver = sv_version(svref_2object(\$ver));
+		}
+		if ($ver) {
+			use PerlReq::Utils qw(verf);
+			$ver = verf($ver);
 			warn "#\t$dep >= $ver\n" if $Verbose;
 			$prereq{$dep}{$ver} = undef;
 		} else {
