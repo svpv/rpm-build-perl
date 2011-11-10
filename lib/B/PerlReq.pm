@@ -296,6 +296,7 @@ sub grok_gv {
 	'leavegiven'	=> sub { RequiresPerl(5.010) },
 	'leavewhen'	=> sub { RequiresPerl(5.010) },
 	'smartmatch'	=> sub { RequiresPerl(5.010) },
+	'say'		=> sub { RequiresPerl(5.010) },
 );
 
 sub compile {
