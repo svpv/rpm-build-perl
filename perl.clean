@@ -16,7 +16,7 @@ once=
 find "$@" -type f -name \*.bs |
 while read -r f; do
 	[ -n "$once" ] ||
-	echo "WARNING: $PROG: non empty *.bs file(s) found:"
+	echo "WARNING: $PROG: non-empty *.bs file(s) found:"
 	echo "    $f"
 	once=1
 done >&2
