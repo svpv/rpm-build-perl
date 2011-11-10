@@ -282,6 +282,14 @@ sub grok_gv {
 	}
 }
 
+sub grok_padsv {
+	my $op = shift;
+	use B::Walker qw(padname);
+	my $padsv = padname($op->targ);
+	return unless $padsv->can('PV');
+	RequiresPerl(5.010) if $padsv->PV eq '$_';
+}
+
 %B::Walker::Ops = (
 	'require'	=> \&grok_require,
 	'dofile'	=> \&grok_require,
@@ -297,6 +305,7 @@ sub grok_gv {
 	'leavewhen'	=> sub { RequiresPerl(5.010) },
 	'smartmatch'	=> sub { RequiresPerl(5.010) },
 	'say'		=> sub { RequiresPerl(5.010) },
+	'padsv'		=> \&grok_padsv,
 );
 
 sub compile {

@@ -1,14 +1,20 @@
 package B::Walker;
-our $VERSION = 0.1;
+our $VERSION = 0.11;
 
 use 5.006;
 use strict;
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT_OK = qw(padval const_sv walk);
+our @EXPORT_OK = qw(padname padval const_sv walk);
 
 our $CV;
+
+sub padname ($) {
+	my $targ = shift;
+	return $CV->PADLIST->ARRAYelt(0)->ARRAYelt($targ);
+}
+
 sub padval ($) {
 	my $targ = shift;
 	return $CV->PADLIST->ARRAYelt(1)->ARRAYelt($targ);
