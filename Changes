@@ -1,3 +1,9 @@
+* Thu Nov 10 2011 Alexey Tourbin <at@altlinux> 0.77-alt1
+- PerlReq/Utils.pm: handle quoted-string versions by upgrading them
+  to version.pm object, according to post-perl-5.8 rules
+- B/PerlReq.pm: handle "use parent" import routine like that of "use base"
+- B/PerlReq.pm: recognize and make deps on perl-5.10 syntactic features
+
 * Fri Oct 21 2011 Alexey Tourbin <at@altlinux> 0.76-alt1
 - updated test suite for perl-5.14
 - B/Walker.pm: invoke optree handlers only with non-zero line number,
