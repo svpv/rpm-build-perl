@@ -288,6 +288,9 @@ sub grok_padsv {
 	my $padsv = padname($op->targ);
 	return unless $padsv->can('PV');
 	RequiresPerl(5.010) if $padsv->PV eq '$_';
+	use constant OPpPAD_STATE =>
+		defined &B::OPpPAD_STATE ? &B::OPpPAD_STATE : 0;
+	RequiresPerl(5.010) if $op->private & OPpPAD_STATE;
 }
 
 %B::Walker::Ops = (
