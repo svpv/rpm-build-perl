@@ -291,6 +291,8 @@ sub grok_gv {
 	'dbmopen'	=> sub { Requires("AnyDBM_File.pm") },
 	'leavetry'	=> sub { $B::Walker::BlockData{Eval} = $B::Walker::Level },
 	'gv'		=> \&grok_gv,
+	'dor'		=> sub { RequiresPerl(5.010) },
+	'dorassign'	=> sub { RequiresPerl(5.010) },
 );
 
 sub compile {
