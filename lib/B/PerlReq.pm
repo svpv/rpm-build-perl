@@ -293,6 +293,8 @@ sub grok_gv {
 	'gv'		=> \&grok_gv,
 	'dor'		=> sub { RequiresPerl(5.010) },
 	'dorassign'	=> sub { RequiresPerl(5.010) },
+	'leavegiven'	=> sub { RequiresPerl(5.010) },
+	'leavewhen'	=> sub { RequiresPerl(5.010) },
 );
 
 sub compile {
