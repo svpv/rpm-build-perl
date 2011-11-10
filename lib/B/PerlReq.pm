@@ -295,6 +295,7 @@ sub grok_gv {
 	'dorassign'	=> sub { RequiresPerl(5.010) },
 	'leavegiven'	=> sub { RequiresPerl(5.010) },
 	'leavewhen'	=> sub { RequiresPerl(5.010) },
+	'smartmatch'	=> sub { RequiresPerl(5.010) },
 );
 
 sub compile {
