@@ -168,7 +168,7 @@ sub grok_import ($$@) {
 	my ($class, undef, @args) = @_;
 	return unless @args;
 	local $B::Walker::Opname = $class;
-	if ($class eq "base") {
+	if ($class eq "base" or $class eq "parent") {
 		foreach my $m (@args) {
 			my $f = mod2path($m);
 			# XXX Requires($f) if $INC{$f};
