@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               rpm-build-perl
-version:            0.77
+version:            0.78
 abstract:           Calculate dependencies for Perl sources
 author:
     - Alexey Tourbin <at@altlinux.org>

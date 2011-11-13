@@ -1,3 +1,6 @@
+* Mon Nov 14 2011 Alexey Tourbin <at@altlinux> 0.78-alt1
+- MANIFEST: added perl.clean
+
 * Thu Nov 10 2011 Alexey Tourbin <at@altlinux> 0.77-alt1
 - PerlReq/Utils.pm: handle quoted-string versions by upgrading them
   to version.pm object, according to post-perl-5.8 rules

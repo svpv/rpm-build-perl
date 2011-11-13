@@ -1,5 +1,5 @@
 Name: rpm-build-perl
-Version: 0.77
+Version: 0.78
 Release: alt1
 
 Summary: RPM helper scripts to calculate Perl dependencies
@@ -51,6 +51,9 @@ cp -p macros.env %buildroot/etc/rpm/macros.d/perl5.env
 %config /etc/rpm/macros.d/perl5.env
 
 %changelog
+* Mon Nov 14 2011 Alexey Tourbin <at@altlinux.ru> 0.78-alt1
+- MANIFEST: added perl.clean
+
 * Thu Nov 10 2011 Alexey Tourbin <at@altlinux.ru> 0.77-alt1
 - PerlReq/Utils.pm: handle quoted-string versions by upgrading them
   to version.pm object, according to post-perl-5.8 rules
