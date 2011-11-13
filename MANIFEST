@@ -9,6 +9,7 @@ lib/B/Walker.pm
 lib/B/PerlReq.pm
 lib/B/Clobbers.pm
 lib/PerlReq/Utils.pm
+perl.clean
 perl.prov
 perl.req
 perl.prov.files
