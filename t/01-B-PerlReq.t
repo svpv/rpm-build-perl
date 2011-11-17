@@ -68,6 +68,10 @@ cmp_ok "$d >= 2.0",		'eq', grok qq(use $m 2.00;);
 cmp_ok "$d >= 2.0.998",		'eq', grok qq(use $m 2.000998;);
 cmp_ok "$d >= 2.001",		'eq', grok qq(use $m 2.0009999;);
 cmp_ok "$d >= 2.010",		'eq', grok qq(use $m 2.01;);
+cmp_ok "$d >= 2.010",		'eq', grok qq(use $m 2.01  qw(Dumper););
+cmp_ok "$d >= 2.010",		'eq', grok qq(use $m 2.01  qw(Dumper Dumper););
+cmp_ok "$d >= 2.010",		'eq', grok qq(use $m 2.01, qw(Dumper););
+cmp_ok "$d >= 2.010",		'eq', grok qq(use $m 2.01, qw(Dumper Dumper););
 cmp_ok "$d >= 2.012",		'eq', grok qq(use $m 2.012;);
 cmp_ok "$d >= 2.019.900",	'eq', grok qq(use $m 2.0199;);
 cmp_ok "$d >= 2.0",		'eq', grok qq(use $m v2;);
@@ -84,6 +88,7 @@ cmp_ok "$d3\nperl(base.pm)",		'eq', grok qq(use $m3; use base "Tie::StdHash";);
 
 cmp_ok "perl(autouse.pm)\n$d", 'eq', grok qq(use autouse "$m";);
 cmp_ok "perl(autouse.pm)\n$d", 'eq', grok qq(use autouse $m => qw(Dumper););
+cmp_ok "perl(autouse.pm)\n$d", 'eq', grok qq(use autouse $m => qw(Dumper Dumper););
 
 cmp_ok '', 'eq', grok qq(   \$path="$f"; require \$path;);
 cmp_ok '', 'eq', grok qq(my \$path="$f"; require \$path;);
