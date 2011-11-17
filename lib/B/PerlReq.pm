@@ -164,9 +164,32 @@ sub grok_require ($) {
 		;
 }
 
+sub grok_args ($) {
+	my $op = shift;
+	my @args;
+	while ($$op and $op->name eq "const") {
+		my $sv = const_sv($op);
+		my $arg;
+		if (ref($sv) eq "B::SPECIAL") {
+			if ($$sv == ${B::sv_yes()}) {
+				$arg = (1 == 1);
+			}
+			elsif ($$sv == ${B::sv_no()}) {
+				$arg = (1 == 0);
+			}
+		}
+		else {
+			$arg = ${$sv->object_2svref};
+		}
+		push @args, $arg;
+		$op = $op->sibling;
+	}
+	return @args;
+}
+
 sub grok_import ($$@) {
-	my ($class, undef, @args) = @_;
-	return unless @args;
+	my ($class, undef, $op) = @_;
+	my @args = grok_args($op) or return;
 	local $B::Walker::Opname = $class;
 	if ($class eq "base" or $class eq "parent") {
 		foreach my $m (@args) {
@@ -190,18 +213,23 @@ sub grok_import ($$@) {
 		check_encoding($args[0]) if $args[0] =~ /^[^:]/;
 		Requires("Filter/Util/Call.pm") if grep { $_ eq "Filter" } @args;
 	}
-	else {
-		# the first import arg is possibly a version
-		my $v = $args[0];
-		if ($v =~ /^\d/ and $v > 0 and (0 + $v) eq $v) {
-			my $f = mod2path($class);
-			Requires($f, $v);
-		}
+	elsif ($class eq "overload") {
+		# avoid version check for << use overload "0+" => ... >>
+	}
+	elsif ($args[0] =~ /^\d/) {
+		# the first import arg is possibly a version, see Exporter/Heavy.pm
+		my $sv = const_sv($op);
+		my $v = sv_version($sv);
+		my $f = mod2path($class);
+		Requires($f, $v) if $v;
 	}
 }
 
 sub grok_version ($$@) {
-	my ($class, undef, $version) = @_;
+	my ($class, undef, $op) = @_;
+	return unless $op->name eq "const";
+	my $sv = const_sv($op);
+	my $version = sv_version($sv);
 	return unless $version;
 	my $f = mod2path($class);
 	local $B::Walker::Opname = "version";
@@ -214,71 +242,48 @@ our %methods = (
 	'require_version' => \&grok_version,
 );
 
-sub grok_method ($) { # class->method(args)
-	my $OP = my $op = shift;
-	my $method = const_sv($op)->PV;
-	return unless $methods{$method};
-	$op = $op->next; return unless $op->name eq "entersub";
-	$op = $op->first; return unless $op->name eq "pushmark";
-	$op = $op->sibling; return unless $op->name eq "const";
-	my $sv = const_sv($op); return unless $sv->can("PV");
-	my $class = $sv->PV;
-	my @args;
-	$op = $op->sibling;
-	while ($$op and $op->name eq "const") {
-		my $sv = const_sv($op);
-		my $arg;
-		unless (@args) {
-			# the first arg is possibly a version
-			# but skip << use overload "0+" => ... >>
-			unless ("$class->$method" eq "overload->import") {
-				$arg = sv_version($sv);
-			}
-		}
-		unless (defined $arg) {
-			# dereference sv value
-			if ($sv->can("object_2svref")) {
-				my $rv = $sv->object_2svref;
-				$arg = $$rv if ref $rv;
-			}
-			# object_2svref is new to perl >= 5.8.1
-			# try to save constants for older perls
-			elsif ($sv->can("PV")) {
-				$arg = $sv->PV;
-			}
-			elsif ($sv->can("NV")) {
-				$arg = $sv->NV;
-			}
-			elsif ($sv->can("int_value")) {
-				$arg = $sv->int_value;
-			}
-		}
-		push @args, $arg;
-		$op = $op->sibling;
+sub grok_with {
+	return unless $INC{"Moose.pm"};
+	my (undef, $op) = @_;
+	my @args = grok_args($op);
+	for my $m (@args) {
+		next unless $m =~ /^\w+(?:::\w+)+\z/;
+		my $f = mod2path($m);
+		Requires($f);
 	}
-	return unless $$OP == $$op;
-	$methods{$method}->($class, $method, @args);
 }
 
-sub grok_gv {
-	return unless exists $INC{"Moose.pm"};
+our %funcs = (
+	'with' => \&grok_with,
+);
 
+sub grok_entersub ($) {
 	my $op = shift;
-	return unless $op->next->name eq "entersub";
-
-	use B::Walker qw(padval);
-	return unless padval($op->padix)->NAME eq "with";
-
-	$op = $op->next->first->first->sibling;
-
-	while ($$op and $op->name eq "const") {
-		my $sv = const_sv($op);
+	$op = $op->first;
+	$op = $op->first unless ${$op->sibling};
+	# die "not pushmark" unless $op->name eq "pushmark";
+	my $args = $op = $op->sibling;
+	while (${$op->sibling}) {
+		last if $op->name eq "method" or
+			$op->name eq "method_named";
 		$op = $op->sibling;
-		next unless $sv->can("PV");
-		my $mod = $sv->PV;
-		next unless $mod =~ /^\w+(?:::\w+)+\z/;
-		my $f = mod2path($mod);
-		Requires($f);
+	}
+	if ($op->name eq "method_named") {
+		my $method = const_sv($op)->PV;
+		return unless $methods{$method};
+		return unless $args->name eq "const";
+		my $sv = const_sv($args);
+		return unless $sv->can("PV");
+		my $class = $sv->PV;
+		$args = $args->sibling;
+		$methods{$method}->($class, $method, $args);
+	}
+	elsif ($op->first->name eq "gv") {
+		$op = $op->first;
+		use B::Walker qw(padval);
+		my $func = padval($op->padix)->NAME;
+		return unless $funcs{$func};
+		$funcs{$func}->($func, $args);
 	}
 }
 
@@ -296,12 +301,11 @@ sub grok_padsv {
 %B::Walker::Ops = (
 	'require'	=> \&grok_require,
 	'dofile'	=> \&grok_require,
-	'method_named'	=> \&grok_method,
+	'entersub'	=> \&grok_entersub,
 	'open'		=> \&grok_perlio,
 	'binmode'	=> \&grok_perlio,
 	'dbmopen'	=> sub { Requires("AnyDBM_File.pm") },
 	'leavetry'	=> sub { $B::Walker::BlockData{Eval} = $B::Walker::Level },
-	'gv'		=> \&grok_gv,
 	'dor'		=> sub { RequiresPerl(5.010) },
 	'dorassign'	=> sub { RequiresPerl(5.010) },
 	'leavegiven'	=> sub { RequiresPerl(5.010) },
