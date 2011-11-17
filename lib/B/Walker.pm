@@ -97,9 +97,9 @@ sub walk_blocks () {
 sub walk_main () {
 	use B qw(main_cv main_root);
 	local $Sub = "MAIN";
-	walk_cv(main_cv);
 	local $CV = main_cv;
 	walk_root(main_root);
+	walk_cv(main_cv);
 }
 
 sub walk_gv ($) {

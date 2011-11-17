@@ -253,8 +253,28 @@ sub grok_with {
 	}
 }
 
+my %TryCV;
+
+sub grok_try {
+	return unless $INC{"Try/Tiny.pm"};
+	my (undef, $op) = @_;
+	return unless $op->name eq "refgen";
+	$op = $op->first->first->sibling;
+	return unless $op->name eq "anoncode";
+	my $cv = padval($op->targ);
+	$TryCV{$$cv} = 1;
+}
+
+sub grok_catch {
+	# suppress nested catch/finally deps
+	&grok_try if $TryCV{$$B::Walker::CV};
+}
+
 our %funcs = (
 	'with' => \&grok_with,
+	'try' => \&grok_try,
+	'catch' => \&grok_catch,
+	'finally' => \&grok_catch,
 );
 
 sub grok_entersub ($) {
@@ -306,6 +326,8 @@ sub grok_padsv {
 	'binmode'	=> \&grok_perlio,
 	'dbmopen'	=> sub { Requires("AnyDBM_File.pm") },
 	'leavetry'	=> sub { $B::Walker::BlockData{Eval} = $B::Walker::Level },
+	'leavesub'	=> sub { $B::Walker::BlockData{Eval} = $B::Walker::Level if $TryCV{$$B::Walker::CV} },
+	'leave'		=> sub { $B::Walker::BlockData{Eval} = $B::Walker::Level if $TryCV{$$B::Walker::CV} },
 	'dor'		=> sub { RequiresPerl(5.010) },
 	'dorassign'	=> sub { RequiresPerl(5.010) },
 	'leavegiven'	=> sub { RequiresPerl(5.010) },

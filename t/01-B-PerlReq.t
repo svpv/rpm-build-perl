@@ -90,6 +90,10 @@ cmp_ok "perl(autouse.pm)\n$d", 'eq', grok qq(use autouse "$m";);
 cmp_ok "perl(autouse.pm)\n$d", 'eq', grok qq(use autouse $m => qw(Dumper););
 cmp_ok "perl(autouse.pm)\n$d", 'eq', grok qq(use autouse $m => qw(Dumper Dumper););
 
+cmp_ok "perl(Try/Tiny.pm)\nperl(Bar.pm)", 'eq', grok q(use Try::Tiny; try { require Foo } catch { require Bar });
+cmp_ok "perl(Try/Tiny.pm)\nperl(Bar.pm)", 'eq', grok q(use Try::Tiny; sub x { try { require Foo } catch { require Bar } });
+cmp_ok "perl(Try/Tiny.pm)\nperl(Baz.pm)", 'eq', grok q(use Try::Tiny; try { try { require Foo } catch { require Bar } } catch { require Baz });
+
 cmp_ok '', 'eq', grok qq(   \$path="$f"; require \$path;);
 cmp_ok '', 'eq', grok qq(my \$path="$f"; require \$path;);
 cmp_ok '', 'eq', grok qq(require "./Data/Dumper.pm";);
@@ -102,8 +106,8 @@ cmp_ok "perl(base.pm)\n$d\nperl(base.pm) >= 1.0",	'eq', grok "require base; base
 
 cmp_ok "perl-base >= 1:5.10.0\n$d", 'eq', grok qq(require 5.010; *x = sub { require $m;};);
 
-cmp_ok "$d2\n$d", "eq", grok qq(require $m; *x = sub { require $m2; };);
-cmp_ok "$d2\n$d", "eq", grok qq(require $m; my \$x = sub { require $m2; };);
+cmp_ok "$d\n$d2", "eq", grok qq(require $m; *x = sub { require $m2; };);
+cmp_ok "$d\n$d2", "eq", grok qq(require $m; my \$x = sub { require $m2; };);
 
 cmp_ok "perl(PerlIO.pm)\nperl(PerlIO/scalar.pm)", "eq", grok q(open FH, "<", \$ref);
 cmp_ok "perl(PerlIO.pm)\nperl(PerlIO/scalar.pm)", "eq", grok q(open FH, "+<", \my $ref);

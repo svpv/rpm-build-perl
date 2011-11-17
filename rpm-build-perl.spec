@@ -11,8 +11,8 @@ Source: %name-%version.tar.gz
 
 BuildArch: noarch
 
-# Automatically added by buildreq on Fri Oct 21 2011
-BuildRequires: perl-Encode-JP perl-Encode-KR perl-Filter perl-devel
+# Automatically added by buildreq on Thu Nov 17 2011
+BuildRequires: perl-Encode-JP perl-Encode-KR perl-Filter perl-Try-Tiny perl-devel
 
 %description
 These herlper scripts will look at perl source files in your package,
