@@ -320,6 +320,18 @@ sub grok_padsv {
 	RequiresPerl(5.010) if $op->private & OPpPAD_STATE;
 }
 
+my %filetests = map { $_ => 1 }
+	qw(ftrread ftrwrite ftrexec fteread ftewrite fteexec ftis ftsize
+	ftmtime ftatime ftctime ftrowned fteowned ftzero ftsock ftchr ftblk
+	ftfile ftdir ftpipe ftsuid ftsgid ftsvtx ftlink fttty fttext ftbinary);
+
+sub grok_filetest {
+	my $op = shift;
+	return unless $filetests{$op->next->name};
+	return if $filetests{$op->first->name};
+	RequiresPerl(5.010);
+}
+
 %B::Walker::Ops = (
 	'require'	=> \&grok_require,
 	'dofile'	=> \&grok_require,
@@ -337,6 +349,8 @@ sub grok_padsv {
 	'smartmatch'	=> sub { RequiresPerl(5.010) },
 	'say'		=> sub { RequiresPerl(5.010) },
 	'padsv'		=> \&grok_padsv,
+
+	map { $_	=> \&grok_filetest } keys %filetests,
 );
 
 sub compile {
