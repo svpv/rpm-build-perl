@@ -42,7 +42,6 @@ my %startblock = map { $_ => 1 }
 sub walk_root ($);
 sub walk_root ($) {
 	my $op = shift;
-	return unless $$op;
 	my $ref = ref($op);
 	if ($ref eq "B::COP") {
 		$Line = $op->line;
@@ -89,7 +88,7 @@ sub walk_cv ($) {
 	return if ref($cv) ne "B::CV";
 	return if $cv->FILE and $cv->FILE ne $0;
 	local $CV = $cv;
-	walk_root($cv->ROOT);
+	walk_root($cv->ROOT) if ${$cv->ROOT};
 	walk_pad($cv->PADLIST);
 }
 
@@ -103,7 +102,7 @@ sub walk_main () {
 	use B qw(main_cv main_root);
 	local $Sub = "MAIN";
 	local $CV = main_cv;
-	walk_root(main_root);
+	walk_root(main_root) if ${main_root()};
 	walk_cv(main_cv);
 }
 
