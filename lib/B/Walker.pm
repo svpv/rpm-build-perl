@@ -42,8 +42,8 @@ my %startblock = map { $_ => 1 }
 sub walk_root ($);
 sub walk_root ($) {
 	my $op = shift;
+	return unless $$op;
 	my $ref = ref($op);
-	return unless $ref and $$op;
 	if ($ref eq "B::COP") {
 		$Line = $op->line;
 		return;
@@ -55,7 +55,12 @@ sub walk_root ($) {
 	local %BlockData = %BlockData if $startblock{$name};
 	local $Opname = $name if $Ops{$name};
 	$Ops{$name}->($op) if $Ops{$name} and $Line;
-	walk_root($op->pmreplroot) if $ref eq "B::PMOP";
+	if ($ref eq "B::PMOP") {
+		my $root = $op->pmreplroot;
+		if (ref($root) and $root->isa("B::OP")) {
+			walk_root($root);
+		}
+	}
 	use B qw(OPf_KIDS);
 	if ($op->flags & OPf_KIDS) {
 		for ($op = $op->first; $$op; $op = $op->sibling) {
