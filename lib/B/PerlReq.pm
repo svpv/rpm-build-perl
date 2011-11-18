@@ -309,6 +309,8 @@ sub grok_entersub ($) {
 
 sub grok_padsv {
 	my $op = shift;
+	use B qw(OPpLVAL_INTRO);
+	return unless $op->private & OPpLVAL_INTRO;
 	use B::Walker qw(padname);
 	my $padsv = padname($op->targ);
 	return unless $padsv->can('PV');
