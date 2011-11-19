@@ -1,3 +1,6 @@
+* Sat Nov 19 2011 Alexey Tourbin <at@altlinux> 0.80-alt1
+- B/PerlReq.pm: IO::File->new(\$var, ...) requires PerlIO::scalar
+
 * Fri Nov 18 2011 Alexey Tourbin <at@altlinux> 0.79-alt1
 - B/PerlReq.pm: unify func/method processing via entersub
 - B/PerlReq.pm: improved import method handling with list args
