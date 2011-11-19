@@ -187,7 +187,7 @@ sub grok_args ($) {
 	return @args;
 }
 
-sub grok_import ($$@) {
+sub grok_import ($$$) {
 	my ($class, undef, $op) = @_;
 	my @args = grok_args($op) or return;
 	local $B::Walker::Opname = $class;
@@ -225,7 +225,7 @@ sub grok_import ($$@) {
 	}
 }
 
-sub grok_version ($$@) {
+sub grok_version ($$$) {
 	my ($class, undef, $op) = @_;
 	return unless $op->name eq "const";
 	my $sv = const_sv($op);
