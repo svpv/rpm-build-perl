@@ -236,10 +236,21 @@ sub grok_version ($$$) {
 	Requires($f, $version);
 }
 
+sub grok_new {
+	my ($class, undef, $op) = @_;
+	if ($class eq "IO::File") {
+		if ($op->name eq "srefgen") {
+			Requires("PerlIO.pm");
+			Requires("PerlIO/scalar.pm");
+		}
+	}
+}
+
 our %methods = (
 	'import' => \&grok_import,
 	'VERSION' => \&grok_version,
 	'require_version' => \&grok_version,
+	'new' => \&grok_new,
 );
 
 sub grok_with {
