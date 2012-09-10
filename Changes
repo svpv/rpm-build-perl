@@ -1,3 +1,6 @@
+* Mon Sep 10 2012 Vladimir Lettiev <crux@altlinux.ru> 0.81-alt1
+- updated test suite for perl-5.16
+
 * Sat Nov 19 2011 Alexey Tourbin <at@altlinux> 0.80-alt1
 - B/PerlReq.pm: IO::File->new(\$var, ...) requires PerlIO::scalar
 
