@@ -9,8 +9,6 @@ Group: Development/Other
 URL: %CPAN %name
 Source: %name-%version.tar.gz
 
-BuildArch: noarch
-
 # Automatically added by buildreq on Thu Nov 17 2011
 BuildRequires: perl-Encode-JP perl-Encode-KR perl-Filter perl-Try-Tiny perl-devel
 
@@ -27,7 +25,7 @@ tags for the package.
 
 %install
 %perl_vendor_install INSTALLSCRIPT=%_rpmlibdir INSTALLVENDORSCRIPT=%_rpmlibdir
-mv %buildroot%perl_vendor_privlib/fake.pm %buildroot%_rpmlibdir/
+mv %buildroot%perl_vendor_archlib/fake.pm %buildroot%_rpmlibdir/
 
 mkdir -p %buildroot/etc/rpm/macros.d
 cp -p perl5-alt-rpm-macros %buildroot/etc/rpm/macros.d/perl5
@@ -41,12 +39,16 @@ cp -p macros.env %buildroot/etc/rpm/macros.d/perl5.env
 %_rpmlibdir/perl.prov.files
 %_rpmlibdir/perl.clean
 %_rpmlibdir/fake.pm
-%dir %perl_vendor_privlib/B
-%perl_vendor_privlib/B/Walker.pm
-%perl_vendor_privlib/B/PerlReq.pm
-%perl_vendor_privlib/B/Clobbers.pm
-%dir %perl_vendor_privlib/PerlReq
-%perl_vendor_privlib/PerlReq/Utils.pm
+%dir %perl_vendor_archlib/B
+%perl_vendor_archlib/B/Walker.pm
+%perl_vendor_archlib/B/ConstOptree.pm
+%perl_vendor_archlib/B/PerlReq.pm
+%perl_vendor_archlib/B/Clobbers.pm
+%dir %perl_vendor_autolib/B
+%dir %perl_vendor_autolib/B/ConstOptree
+%perl_vendor_autolib/B/ConstOptree/ConstOptree.so
+%dir %perl_vendor_archlib/PerlReq
+%perl_vendor_archlib/PerlReq/Utils.pm
 %config /etc/rpm/macros.d/perl5
 %config /etc/rpm/macros.d/perl5.env
 
