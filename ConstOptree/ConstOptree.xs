@@ -19,7 +19,7 @@ static OP *convert_arg(pTHX_ OP *op)
     const char *name = GvNAME(gv);
     SVOP *newop = NULL;
     if (*name == '\017') /* $^O */
-	newop = (SVOP *) newSVOP(OP_CONST, 0, newSVpvs(OSNAME));
+	newop = (SVOP *) newSVOP(OP_CONST, 0, newSVpvs_share(OSNAME));
     if (*name == '\026') /* $^V */
 	newop = (SVOP *) newSVOP(OP_CONST, 0, new_version(PL_patchlevel));
     if (*name == ']')    /* $]  */
