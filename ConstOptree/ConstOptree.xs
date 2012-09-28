@@ -20,6 +20,8 @@ static OP *convert_arg(pTHX_ OP *op)
     SVOP *newop = NULL;
     if (*name == '\017') /* $^O */
 	newop = (SVOP *) newSVOP(OP_CONST, 0, newSVpvs(OSNAME));
+    if (*name == '\026') /* $^V */
+	newop = (SVOP *) newSVOP(OP_CONST, 0, new_version(PL_patchlevel));
     if (*name == ']')    /* $]  */
 	newop = (SVOP *) newSVOP(OP_CONST, 0, vnumify(PL_patchlevel));
     if (newop) {
