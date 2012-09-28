@@ -1,5 +1,5 @@
 Name: rpm-build-perl
-Version: 0.81
+Version: 0.82
 Release: alt1
 
 Summary: RPM helper scripts to calculate Perl dependencies
@@ -53,6 +53,11 @@ cp -p macros.env %buildroot/etc/rpm/macros.d/perl5.env
 %config /etc/rpm/macros.d/perl5.env
 
 %changelog
+* Sat Sep 29 2012 Alexey Tourbin <at@altlinux.ru> 0.82-alt1
+- B/ConstOptree.pm: new module, implements optree constant folding
+  for $^O, $^V, and $] variables by installing custom PL_check hooks
+- B/PerlReq.pm: now handles if.pm import routine
+
 * Mon Sep 10 2012 Vladimir Lettiev <crux@altlinux.ru> 0.81-alt1
 - updated test suite for perl-5.16
 
