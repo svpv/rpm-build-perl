@@ -207,6 +207,7 @@ sub do_deparse {
 #   affected packages: autoconf
 	push @pipe, "-I/usr/lib/rpm", "-Mfake" if $Method ne "strict";
 	push @pipe, map { "-I$_" } inc();
+	push @pipe, "-MO=ConstOptree";
 	my $MO = "-MO=PerlReq";
 	$MO .= ",-$Method" if $Method ne "normal";
 	$MO .= ",-verbose" if $Verbose;
