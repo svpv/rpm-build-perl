@@ -33,14 +33,14 @@ static OP *convert_arg(pTHX_ OP *op)
     return op;
 }
 
-static OP *my_ck_op(pTHX_ OP *op, Perl_check_t ck_next)
+static OP *my_ck_op(pTHX_ OP *op)
 {
     OP **argp = &cUNOPx(op)->op_first;
     while (*argp) {
 	*argp = convert_arg(aTHX_ *argp);
 	argp = &(*argp)->op_sibling;
     }
-    return ck_next(aTHX_ op);
+    return op;
 }
 
 #define doOPs() \
@@ -64,7 +64,7 @@ static OP *my_ck_op(pTHX_ OP *op, Perl_check_t ck_next)
 #define doOP(NAME) \
     static Perl_check_t orig_ck_ ## NAME; \
     static OP *my_ck_ ## NAME(pTHX_ OP *op) { \
-	return my_ck_op(aTHX_ op, orig_ck_ ## NAME); \
+	return orig_ck_ ## NAME(aTHX_ my_ck_op(aTHX_ op)); \
     }
 doOPs()
 #undef doOP
