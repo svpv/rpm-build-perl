@@ -119,7 +119,7 @@ sub walk_gv ($) {
 sub walk_stash ($$);
 sub walk_stash ($$) { # similar to B::walksymtable
 	my ($symref, $prefix) = @_;
-	while (my ($sym) = each %$symref) {
+	for my $sym (keys %$symref) {
 		no strict 'refs';
 		my $fullname = "*main::". $prefix . $sym;
 		if ($sym =~ /::\z/) {
