@@ -50,7 +50,9 @@ sub RequiresPerl ($) {
 	my $v = shift;
 	my $dep = "perl-base >= " . verf_perl($v);
 	my $msg = "$dep at line $B::Walker::Line (depth $B::Walker::Level)";
-	if (not $Strict and $v < 5.010) {
+	# '5.6' used in perl-Bundle-Wombat, etc
+	# 13.001 is known bug from perl-Data-YADV, sv_version of v5.008_001
+	if ((not $Strict and $v < 5.010) or $v eq '5.6' or $v eq '13.001') {
 		print STDERR "# $msg old perl SKIP\n" if $Verbose;
 		return;
 	}
