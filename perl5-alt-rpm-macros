@@ -61,7 +61,7 @@ perl_vendor_build() { \
 	export PERL_EXTUTILS_AUTOINSTALL="${PERL_EXTUTILS_AUTOINSTALL:---skip}" \
 	export XSUBPP_STATIC_XS=${XSUBPP_STATIC_XS:-1} \
 		_perl_vendor_fixin \
-	if %__grep -qs -Ew '((dist|module)_name|Build_PL)' Build.PL; then \
+	if %__grep -qs -Ew '((dist|module)_name|Build_PL|Module::Build)' Build.PL; then \
 		_perl_vendor_MB_build "$@" \
 	else \
 		_perl_vendor_MM_build "$@" \
