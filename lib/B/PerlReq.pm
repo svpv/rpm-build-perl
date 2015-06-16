@@ -44,7 +44,7 @@ our @Skip = (
 
 our ($Strict, $Relaxed, $Verbose, $Debug);
 
-use B::Walker qw(const_sv);
+use B::Walker qw(const_methop const_sv);
 
 sub RequiresPerl ($) {
 	my $v = shift;
@@ -275,8 +275,13 @@ my %TryCV;
 sub grok_try {
 	return unless $INC{"Try/Tiny.pm"};
 	my (undef, $op) = @_;
-	return unless $op->name eq "refgen";
-	$op = $op->first->first->sibling;
+	if ($op->name eq "srefgen") {
+		$op = $op->first->first;
+	} elsif ($op->name eq "refgen") {
+		$op = $op->first->first->sibling;
+	} else {
+		return;
+	}
 	return unless $op->name eq "anoncode";
 	my $cv = padval($op->targ);
 	$TryCV{$$cv} = 1;
@@ -306,7 +311,13 @@ sub grok_entersub ($) {
 		$op = $op->sibling;
 	}
 	if ($op->name eq "method_named") {
-		my $method = const_sv($op)->PV;
+		my $method;
+		if (ref($op) eq 'B::METHOP') {
+			$method = const_methop($op);
+		} else {
+			$method = const_sv($op);
+		}
+		$method = $method->PV;
 		return unless $methods{$method};
 		return unless $args->name eq "const";
 		my $sv = const_sv($args);
@@ -318,7 +329,10 @@ sub grok_entersub ($) {
 	elsif ($op->first->name eq "gv") {
 		$op = $op->first;
 		use B::Walker qw(padval);
-		my $func = padval($op->padix)->NAME;
+		my $padval = padval($op->padix);
+		# perl 5.22 sometimes optimizes to B::IV
+		return unless ref $padval eq 'B::GV';
+		my $func = $padval->NAME;
 		return unless $funcs{$func};
 		$funcs{$func}->($func, $args);
 	}

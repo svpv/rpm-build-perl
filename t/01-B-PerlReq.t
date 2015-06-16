@@ -139,4 +139,7 @@ EOF
 
 cmp_ok "perl(Cwd.pm) >= 1.0",	"eq", grok q(use Cwd 0==0);
 
+# perl 5.22 sometimes optimizes to B::IV leading to crash
+cmp_ok "$d", "eq", grok qq(sub foo{} foo; require $m;);
+
 #END { $? = 0; }

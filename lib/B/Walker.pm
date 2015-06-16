@@ -6,7 +6,7 @@ use strict;
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT_OK = qw(padname padval const_sv walk);
+our @EXPORT_OK = qw(padname padval const_methop const_sv walk);
 
 our $CV;
 
@@ -23,6 +23,13 @@ sub padval ($) {
 sub const_sv ($) {
 	my $op = shift;
 	my $sv = $op->sv;
+	$sv = padval($op->targ) unless $$sv;
+	return $sv;
+}
+
+sub const_methop ($) {
+	my $op = shift;
+	my $sv = $op->meth_sv;
 	$sv = padval($op->targ) unless $$sv;
 	return $sv;
 }
