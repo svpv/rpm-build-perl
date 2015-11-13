@@ -326,7 +326,7 @@ sub grok_entersub ($) {
 		$args = $args->sibling;
 		$methods{$method}->($class, $method, $args);
 	}
-	elsif ($op->first->name eq "gv") {
+       elsif (${$op->first} && $op->first->name eq "gv") {
 		$op = $op->first;
 		use B::Walker qw(padval);
 		my $padval = padval($op->padix);
