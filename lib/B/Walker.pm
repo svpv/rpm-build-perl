@@ -1,5 +1,5 @@
 package B::Walker;
-our $VERSION = 0.11;
+our $VERSION = 0.12;
 
 use 5.006;
 use strict;
@@ -20,11 +20,20 @@ sub padval ($) {
 	return $CV->PADLIST->ARRAYelt(1)->ARRAYelt($targ);
 }
 
-sub const_sv ($) {
-	my $op = shift;
-	my $sv = $op->sv;
-	$sv = padval($op->targ) unless $$sv;
-	return $sv;
+## by viy@; from Module::Info 0.37
+sub const_sv {
+    my $op = shift;
+    my $sv;
+    
+    if ($op->name eq 'method_named' && $op->can('meth_sv')) {
+        $sv = $op->meth_sv;
+    }
+    elsif ($op->can('sv')) {
+        $sv = $op->sv;
+    }
+    # the constant could be in the pad (under useithreads)
+    $sv = padval($op->targ) unless ref($sv) && $$sv;
+    return $sv;
 }
 
 sub const_methop ($) {
@@ -163,6 +172,7 @@ B::Walker - dumb walker, optree ranger
 =head1	COPYING
 
 Copyright (c) 2006, 2007 Alexey Tourbin, ALT Linux Team.
+Adapted to perl 2.2x' B by Igor Vlasenko, ALT Linux Team.
 
 This is free software; you can redistribute it and/or modify it under the terms
 of the GNU General Public License as published by the Free Software Foundation;
