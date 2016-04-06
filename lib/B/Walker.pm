@@ -78,6 +78,12 @@ sub walk_root ($) {
 	}
 	use B qw(OPf_KIDS);
 	if ($op->flags & OPf_KIDS) {
+		if ($ref eq 'B::OP') {
+			# B::OP has no ->first method; 
+			# can be returned from bad xs (see optimizer 0.08 with perl 5.22)
+			# (can't determine class of operator method_named, assuming BASEOP)
+			return;
+		}
 		for ($op = $op->first; $$op; $op = $op->sibling) {
 			walk_root($op);
 		}
