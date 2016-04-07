@@ -260,7 +260,7 @@ our %methods = (
 );
 
 sub grok_with {
-	return unless $INC{"Moose.pm"};
+	return unless $INC{'Moose.pm'} or $INC{'Any/Moose.pm'} or $INC{'Mouse.pm'} or $INC{'Moo.pm'};
 	my (undef, $op) = @_;
 	my @args = grok_args($op);
 	for my $m (@args) {
