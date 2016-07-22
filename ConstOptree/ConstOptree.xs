@@ -33,11 +33,25 @@ static OP *convert_arg(pTHX_ OP *op)
     return op;
 }
 
-static OP *my_ck_op(pTHX_ OP *op)
+static OP *convert_args(pTHX_ OP *op)
 {
+    if (!(op->op_flags & OPf_KIDS))
+	return op;
     OP **argp = &cUNOPx(op)->op_first;
+    OP *lastarg = NULL, **lastargp = &lastarg;
+    /* Something like the second op pointer after op_first? */
+    switch (OP_CLASS(op)) {
+    case OA_BINOP:
+    case OA_LOGOP:
+    case OA_LISTOP:
+    case OA_PMOP:
+	lastargp = &cBINOPx(op)->op_last;
+    }
     while (*argp) {
+	bool setlast = *argp == *lastargp;
 	*argp = convert_arg(aTHX_ *argp);
+	if (setlast)
+	    *lastargp = *argp;
 	argp = &(*argp)->op_sibling;
     }
     return op;
@@ -64,7 +78,7 @@ static OP *my_ck_op(pTHX_ OP *op)
 #define doOP(NAME) \
     static Perl_check_t orig_ck_ ## NAME; \
     static OP *my_ck_ ## NAME(pTHX_ OP *op) { \
-	return orig_ck_ ## NAME(aTHX_ my_ck_op(aTHX_ op)); \
+	return orig_ck_ ## NAME(aTHX_ convert_args(aTHX_ op)); \
     }
 doOPs()
 #undef doOP
