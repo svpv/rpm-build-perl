@@ -57,6 +57,40 @@ static OP *convert_args(pTHX_ OP *op)
     return op;
 }
 
+static OP *my_ck_LOGOP_inside_UNOP(pTHX_ OP *op)
+{
+    if (!(op->op_flags & OPf_KIDS))
+	return op;
+    LOGOP *lop = cUNOPx(op)->op_first;
+    /* For now, handle just AND (used by "if") and OR. */
+    switch (lop->op_type) {
+    case OP_AND:
+    case OP_OR:
+	break;
+    default:
+	return op;
+    }
+    /* Const condition already, not reduced for some reason. */
+    if (lop->op_first->op_type == OP_CONST)
+	return op;
+    lop->op_first = convert_arg(aTHX_ lop->op_first);
+    /* Got constant condition? */
+    if (lop->op_first->op_type != OP_CONST)
+	return op;
+    /* Destruct and then construct LOGOP again. */
+    OP *first = lop->op_first;
+    OP *other = lop->op_first->op_sibling;
+    first->op_next = first;
+    other->op_next = other;
+    if (other->op_flags & OPf_KIDS)
+	other->op_next = cUNOPx(other)->op_first;
+    OP *newop = newLOGOP(lop->op_type, lop->op_flags,
+		     first, other);
+    //op_free(lop);
+    //op_free(op);
+    return newop;
+}
+
 #define doOPs() \
     /* binops */ \
     doOP(LT)	/* numeric lt (<)  */ \
@@ -91,6 +125,7 @@ static void boot_ops()
     PL_check[OP_ ## NAME] = my_ck_ ## NAME;
     doOPs()
 #undef doOP
+    PL_check[OP_NULL] = my_ck_LOGOP_inside_UNOP;
 }
 
 MODULE = B::ConstOptree		PACKAGE = B::ConstOptree
